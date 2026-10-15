@@ -1,0 +1,371 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+
+  /* Sampled from the EarlyHer logo (brand-500) and extended lighter and darker. */
+  --color-brand-50: #fff5f9;
+  --color-brand-100: #fde9f2;
+  --color-brand-200: #fbd3e4;
+  --color-brand-300: #f6a9cc;
+  --color-brand-400: #f07ab3;
+  --color-brand-500: #e94c99;
+  /* 600 and darker carry white text at AA contrast; use these for buttons and links. */
+  --color-brand-600: #c81e72;
+  --color-brand-700: #a3155b;
+  --color-brand-800: #7d1247;
+
+  --color-ink: #2a1422;
+  --color-ink-soft: #6a5461;
+  --color-canvas: #fffaf8;
+  --color-line: #f2dbe5;
+
+  --shadow-soft: 0 1px 2px rgb(125 18 71 / 0.04), 0 8px 24px -8px rgb(125 18 71 / 0.12);
+  --shadow-lift: 0 2px 4px rgb(125 18 71 / 0.05), 0 18px 40px -12px rgb(125 18 71 / 0.22);
+}
+
+html {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  overflow-wrap: break-word;
+}
+
+/* Kiosk use: no text selection highlights on tap targets, no double-tap zoom delay. Pinch zoom stays on. */
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-ink);
+  outline-offset: 3px;
+  border-radius: 0.5rem;
+}
+
+/* Soft pink glow behind page content, echoing the reference design. */
+.page-glow {
+  background:
+    radial-gradient(60rem 28rem at 50% -6rem, rgb(251 211 228 / 0.75), transparent 70%),
+    radial-gradient(34rem 22rem at 8% 22rem, rgb(253 233 242 / 0.9), transparent 70%),
+    radial-gradient(34rem 22rem at 92% 26rem, rgb(253 233 242 / 0.9), transparent 70%);
+  background-repeat: no-repeat;
+}
+
+/* Home hero: a pale blush haze that deepens towards the device, as in the reference. */
+.hero-glow {
+  background:
+    radial-gradient(48rem 26rem at 50% 0%, rgb(251 211 228 / 0.85), transparent 70%),
+    radial-gradient(40rem 22rem at 50% 100%, rgb(246 169 204 / 0.45), transparent 70%),
+    linear-gradient(180deg, #fff5f9 0%, var(--color-canvas) 100%);
+}
+
+.stage-glow {
+  background: radial-gradient(closest-side, rgb(240 122 179 / 0.35), rgb(251 211 228 / 0.3) 55%, transparent);
+}
+
+dialog::backdrop {
+  background: rgb(42 20 34 / 0.55);
+}
+
+/* --- Hero phone animation ----------------------------------------------------- */
+
+/* The phone rises into the hero from below. */
+@keyframes phone-rise {
+  from {
+    opacity: 0;
+    transform: translateY(35%);
+  }
+}
+
+.phone-rise {
+  animation: phone-rise 1s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* After rising, the phone floats and sways slightly, like it is being held. */
+@keyframes phone-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-14px) rotate(1.5deg);
+  }
+}
+
+.phone-float {
+  animation: phone-float 7s ease-in-out infinite 1s;
+}
+
+/* A dot travels round a dashed orbit behind the phone. */
+@keyframes orbit {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+.orbit {
+  transform: translate(-50%, -50%);
+  animation: orbit 18s linear infinite;
+}
+
+/* The question progress bar fills, then starts again. */
+@keyframes progress-fill {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.progress-fill {
+  width: 0;
+  animation: progress-fill 4s ease-in-out infinite 1.2s;
+}
+
+/* The phone's Next button gently pulses, inviting a tap. */
+@keyframes next-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(255 255 255 / 0.6);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgb(255 255 255 / 0);
+  }
+}
+
+.next-pulse {
+  animation: next-pulse 2.2s ease-in-out infinite;
+}
+
+/* Floating cards fade in after the phone, then drift gently, each on its own beat. */
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+}
+
+@keyframes card-float {
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.card-enter {
+  animation: card-enter 0.7s ease-out both;
+  animation-delay: var(--delay, 0s);
+}
+
+.card-float {
+  animation: card-float 6s ease-in-out infinite;
+  animation-delay: calc(var(--delay, 0s) + 0.7s);
+}
+
+/* The glow behind the phone slowly breathes; rings of light ripple outward. */
+@keyframes glow-breathe {
+  50% {
+    opacity: 0.7;
+    /* Tailwind's centring uses the separate `translate` property, so only scale here. */
+    transform: scale(1.08);
+  }
+}
+
+.glow-breathe {
+  animation: glow-breathe 7s ease-in-out infinite;
+}
+
+@keyframes ripple-ring {
+  from {
+    opacity: 0.7;
+    transform: translate(-50%, -50%) scale(0.45);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.35);
+  }
+}
+
+.ripple-ring {
+  transform: translate(-50%, -50%);
+  animation: ripple-ring 4.8s ease-out infinite both;
+}
+
+@keyframes sparkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.sparkle {
+  animation: sparkle 3.6s ease-in-out infinite;
+}
+
+/* A soft shine sweeps across the phone screen now and then. */
+@keyframes screen-shine {
+  0%,
+  70% {
+    transform: translateX(0) skewX(-20deg);
+  }
+  100% {
+    transform: translateX(480%) skewX(-20deg);
+  }
+}
+
+.screen-shine {
+  animation: screen-shine 6s ease-in-out infinite 1.5s;
+}
+
+/* The selected answer moves from chip to chip. Each chip is lit for its share of the cycle. */
+@keyframes chip-cycle {
+  0%,
+  13% {
+    background-color: #fff;
+    color: var(--color-brand-700);
+    transform: scale(1.06);
+    box-shadow: 0 6px 16px -6px rgb(125 18 71 / 0.45);
+  }
+  17%,
+  100% {
+    background-color: rgb(255 255 255 / 0.2);
+    color: #fff;
+    transform: scale(1);
+    box-shadow: none;
+  }
+}
+
+.chip-cycle {
+  animation: chip-cycle var(--chip-cycle, 9.8s) ease-in-out infinite both;
+  animation-delay: calc(var(--chip-delay, 0s) + 1s);
+}
+
+/* Bars beside the Listen icon move like a voice playing. */
+@keyframes sound-bar {
+  0%,
+  100% {
+    height: 30%;
+  }
+  50% {
+    height: 100%;
+  }
+}
+
+.sound-bar {
+  height: 30%;
+  animation: sound-bar 0.9s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Hold one calm frame: phone in place, first answer selected, no drifting. */
+  .phone-rise,
+  .phone-float,
+  .orbit,
+  .next-pulse,
+  .card-enter,
+  .card-float,
+  .glow-breathe,
+  .chip-cycle,
+  .sound-bar,
+  .screen-shine {
+    animation: none !important;
+  }
+  .ripple-ring,
+  .sparkle,
+  .screen-shine {
+    display: none;
+  }
+  .progress-fill {
+    animation: none !important;
+    width: 50%;
+  }
+  .chip-cycle:first-child {
+    background-color: #fff;
+    color: var(--color-brand-700);
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.rise-in {
+  animation: rise-in 0.35s ease-out both;
+}
+
+@keyframes pulse-dot {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.pulse-dot {
+  animation: pulse-dot 1.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* --- Printing ---------------------------------------------------------------
+   Only the print summary is printed. It is rendered into #print-root, a direct
+   child of <body>, while a print dialog is open. */
+#print-root {
+  display: none;
+}
+
+@media print {
+  html,
+  body {
+    background: #fff !important;
+  }
+
+  body > *:not(#print-root) {
+    display: none !important;
+  }
+
+  #print-root {
+    display: block;
+    color: #000;
+  }
+
+  @page {
+    margin: 12mm;
+  }
+}
+
+/* 80mm receipt printers: about 72mm of printable width, no page margins. */
+.print-thermal-80 {
+  width: 72mm;
+  font-size: 11pt;
+}
+
+@media print {
+  .print-thermal-80 {
+    margin: 0;
+  }
+}
