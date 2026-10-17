@@ -8,8 +8,8 @@ import { educationModules } from "@/content/en/education";
 const CORE_ROUTES = [
   "/",
   "/concern",
-  "/assessment",
   "/next-step",
+  "/no-concern",
   "/learn",
   "/healthcare",
   ...educationModules.map((module) => `/learn/${module.slug}`),

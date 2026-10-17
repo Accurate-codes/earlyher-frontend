@@ -1,7 +1,7 @@
 /**
- * English interface text. Clinical wording lives in clinical.ts and education.ts.
- * To add a language, copy this folder (for example to content/yo), translate it,
- * and have any medical wording reviewed before it is shown.
+ * English interface text. Clinical wording lives in clinical.ts, education.ts and the
+ * questionnaire files. Yoruba text lives in content/yo/ui.ts; any key missing there is
+ * shown in English with a visible notice, never passed off as Yoruba.
  */
 export const ui = {
   appName: "EarlyHer",
@@ -20,28 +20,26 @@ export const ui = {
     startAgain: "Start again",
     findHealthcare: "Find healthcare",
     learnMore: "Learn more",
-    checkConcern: "Check a concern",
+    checkConcern: "I have a breast concern",
     print: "Print",
     sendBySms: "Send by SMS",
     loading: "Loading…",
     draft: "Draft",
     draftLong: "Draft wording, awaiting clinical review",
     demo: "Demo",
-    menu: "Menu",
     skipToContent: "Skip to main content",
+    flowNavigation: "Page navigation",
+    opensInNewTab: "(opens in a new tab)",
+    important: "Important",
   },
 
-  nav: {
-    home: "Home",
-    concern: "Check a concern",
-    learn: "Learn",
-    healthcare: "Find healthcare",
-  },
-
-  connectivity: {
-    online: "Online",
-    offline: "Offline",
-    offlineDetail: "No internet. You can still learn, answer questions and see your next step.",
+  language: {
+    label: "Language",
+    names: { en: "English", yo: "Yorùbá" },
+    /** Shown when Yoruba is chosen but reviewed translations are missing. */
+    pending:
+      "Yorùbá: reviewed translations are not ready yet. Text that has not been translated is shown in English.",
+    missingCount: (missing: number, total: number) => `${missing} of ${total} interface texts are not yet translated.`,
   },
 
   audio: {
@@ -50,168 +48,168 @@ export const ui = {
   },
 
   home: {
-    eyebrowTag: "Private",
-    eyebrow: "No account needed",
-    startTitle: "Where would you like to start?",
-    startText: "Choose the option that fits you best. You can come back and choose another at any time.",
-    howTitle: "How EarlyHer helps",
-    howText: "Simple steps, one screen at a time. You can listen to every screen.",
-    steps: [
-      { title: "Tell us what you've noticed", text: "Choose the change that is closest to yours, or say you're not sure." },
-      { title: "Answer a few simple questions", text: "One question at a time, with large buttons and an “I'm not sure” option." },
-      { title: "See your next step", text: "Get clear guidance on when to seek professional care, and where." },
-    ],
-    changesTitle: "Changes to look out for",
-    changesText: "Knowing what is normal for you helps you notice when something changes.",
-    changesLearn: "Learn about these changes",
-    changesNoticed: "I've noticed a change",
-    topicsTitle: "Learn at your own pace",
-    topicsText: "Short topics with large text. Listen to any card, and go back whenever you like.",
-    topicOpen: "Open topic",
-    anywhereTitle: "Made for where you are",
-    anywhereText: "Built for health centre kiosks and community outreaches, and it works on phones and tablets too.",
-    anywhere: [
-      { title: "At the health centre", text: "Large buttons for the kiosk touchscreen." },
-      { title: "At community outreaches", text: "Quick to start, nothing to sign up for." },
-      { title: "On your own phone", text: "The same steps on a smaller screen." },
-    ],
-    faqTitle: "Common questions",
-    faqText: "Short answers about what EarlyHer does and how your information is handled.",
-    faq: [
-      {
-        q: "Does EarlyHer diagnose breast cancer?",
-        a: "No. This tool does not diagnose breast cancer. It helps you understand your responses and provides guidance on when to seek professional care.",
-        draft: true,
-      },
-      { q: "Do I need an account?", a: "No. You can use EarlyHer without a name, account, email or password." },
-      {
-        q: "What happens to my answers?",
-        a: "Your answers are kept only while you use the screen. They are cleared when you press Finish, or automatically if the screen is left alone for a while.",
-      },
-      {
-        q: "Can I use it without internet?",
-        a: "Once EarlyHer is set up on a device, learning, the questions and your next step keep working without internet. Sending an SMS and looking up facilities need a connection.",
-      },
-      { q: "Can I listen instead of reading?", a: "Yes. Press Listen on any screen to hear the words read aloud." },
-      {
-        q: "What if my answer is not listed?",
-        a: "Choose “I'm not sure”, or press “I can't find my answer” on any question.",
-      },
-    ],
-    ctaTitle: "Ready when you are",
-    ctaText: "It only takes a few minutes, and you can stop at any time.",
-    privacyTitle: "Private and simple",
-    privacy: [
-      { title: "No account", text: "You don't need a name, phone number or password." },
-      { title: "Cleared when you finish", text: "Your answers are removed from this device when you press Finish or walk away." },
-      { title: "Listen to every screen", text: "Press Listen to hear the words read aloud." },
-      { title: "Works without internet", text: "Once set up, learning, questions and your next step keep working if the connection drops." },
-    ],
-    headlineStart: "Your breast health",
-    headlineAccent: "matters.",
-    support: "Learn about breast health, understand changes, and find your next step.",
-    listenText:
-      "Your breast health matters. Learn about breast health, understand changes, and find your next step. " +
-      "Choose one of three options. I have a breast concern. I don't have a concern. Or, find healthcare.",
+    privacy: "Private, no accounts needed",
+    title: "Where would you like to start?",
+    text: "Choose the option that fits you best. You can come back and choose another at any time.",
     journeysLabel: "Choose where to start",
+    listenText:
+      "Where would you like to start? Choose the option that fits you best. You can come back and choose another at any time. " +
+      "I have a breast concern. I don't have a concern. Find healthcare.",
     journeys: {
-      concern: { title: "I have a breast concern", text: "Tell us what you've noticed." },
-      learn: {
-        title: "I don't have a concern",
-        text: "Learn about breast health and what to look out for.",
-      },
-      healthcare: { title: "Find healthcare", text: "Find out where to get professional care." },
+      concern: { title: "I have a breast concern", text: "Answer some questions about what you have noticed." },
+      noConcern: { title: "I don't have a concern", text: "Information for when you have not noticed anything." },
+      healthcare: { title: "Find healthcare", text: "Find health facilities in Lagos State." },
     },
-    features: {
-      education: { title: "Breast-health education", text: "Short, clear lessons you can listen to." },
-      questions: { title: "Guided questions", text: "One simple question at a time." },
-      healthcare: { title: "Healthcare navigation", text: "Find where to get professional care." },
-    },
-    previewCaption: "A preview of the guided questions",
-    boundary: "EarlyHer gives education and guidance. It does not diagnose.",
   },
 
-  concern: {
-    title: "What have you noticed?",
-    help: "Choose the one that is closest to what you have noticed.",
-    listenIntro: "What have you noticed? Choose one.",
+  questionnaire: {
+    title: "Your breast concern",
+    pendingTitle: "Questionnaire content is being prepared",
+    pendingText:
+      "The questions for this part of EarlyHer are being prepared and reviewed by our clinical lead. They are not available yet.",
+    pendingNext: "You can still talk to a healthcare professional:",
     devFixture: "Interface test (not clinical)",
-    devFixtureHelp: "Development only. Placeholder questions that test branching.",
-  },
-
-  assessment: {
+    devFixtureHelp: "Development only. Placeholder questions that test the questionnaire.",
+    fixtureNotice: "Development fixture. These are not health questions and the result is not clinical.",
+    draftNotice: "These questions have not been approved for public use.",
     questionOf: (position: number, total: number) => `Question ${position} of ${total}`,
     questionOpen: (position: number) => `Question ${position}`,
     moreMayFollow: "More questions may follow, depending on your answers.",
-    cantFind: "I can't find my answer",
-    yourAnswers: "Your answers so far",
+    yes: "Yes",
+    no: "No",
+    unsure: "I don't know",
+    chooseAll: "Choose all that apply.",
+    optional: "Optional",
+    required: "Please choose an answer to continue.",
+    requiredMultiple: "Please choose at least one answer to continue.",
+    clear: "Clear answer",
+    review: "Check your answers",
+    reviewText: "Look over your answers. You can change any of them before you continue.",
+    notAnswered: "Not answered",
     change: "Change",
-    changing: "You are changing an earlier answer. Later questions may change too.",
-    notListed: "My answer was not listed",
-    exit: "Exit",
-    demoPathway: "Example questions for demonstration. Not a complete clinical pathway.",
-    fixturePathway: "Development fixture. These are not health questions.",
+    changeLabel: (prompt: string) => `Change: ${prompt}`,
+    submit: "See my next steps",
+    backToReview: "Back to check your answers",
+    incomplete: "Some questions still need an answer.",
+    goToQuestion: "Go to the question",
     noSession: {
       title: "Let's start again",
       text: "There are no answers here. For your privacy, answers are cleared when a session ends or the page is reloaded.",
     },
-    unavailable: {
-      title: "Questions for this concern are not ready yet",
-      text: "We don't have guided questions for this concern yet. You can still take a next step today.",
-      chosen: "You chose:",
-      chooseAnother: "Choose a different concern",
-      learnChanges: "Learn about changes to look out for",
+  },
+
+  results: {
+    title: "Your next steps",
+    urgencyHeading: "How soon to seek care",
+    urgencyPending:
+      "EarlyHer cannot yet tell you how soon to seek care. This part is waiting for approved guidance from our clinical lead.",
+    urgencyPendingNext: "You can still talk to a healthcare professional using the options below.",
+    fixtureResult: "Development fixture result. Not clinical guidance.",
+    optionsHeading: "Talk to a healthcare professional",
+    telemedicine: {
+      title: "Talk to a doctor online",
+      text: (provider: string) => `Talk to a doctor through ${provider}, a separate telemedicine service.`,
+      open: (provider: string) => `Go to ${provider}`,
+      leaving: "You will leave EarlyHer. The other service has its own terms and privacy policy.",
+      unavailable: "Online consultations are not available through EarlyHer yet.",
     },
-  },
-
-  cantFind: {
-    title: "Can't find your answer?",
-    text: "That's okay. Choose what suits you best.",
-    unsure: "Choose “I'm not sure”",
-    notListed: "Continue without choosing an answer",
-    notListedHelp: "We will note that your answer was not listed and move on.",
-    record: "Record a short voice note",
-    recordHelp: "Optional. Say it in your own words.",
-    talk: "Talk to a healthcare professional instead",
-  },
-
-  voice: {
-    title: "Record a voice note",
-    privacy:
-      "Your recording stays on this device. It is not sent to anyone, it does not change your answers or your next step, and it is deleted when you finish.",
-    purpose: "For now, you can only listen back to your own recording on this screen.",
-    allow: "Allow microphone and start recording",
-    asking: "Waiting for permission to use the microphone…",
-    recording: "Recording…",
-    stop: "Stop recording",
-    limit: (seconds: number) => `Recordings stop automatically after ${seconds} seconds.`,
-    recorded: "Your voice note",
-    remove: "Delete recording",
-    again: "Record again",
-    denied: "The microphone is blocked. You can continue without a recording.",
-    unsupported: "This device cannot record audio. You can continue without a recording.",
-    failed: "Recording did not work. You can continue without a recording.",
-    done: "Done",
-  },
-
-  nextStep: {
-    title: "Your next step",
-    recommendation: "Recommendation",
-    why: "Why?",
-    aiLabel: "More explanation",
-    aiBadge: "AI-assisted",
-    aiSimulated: "Simulated response. No AI service was contacted.",
-    aiLoading: "Preparing a little more explanation…",
-    aiUnavailable: "Extra explanation is not available right now. Your next step above stays the same.",
-    aiNote: "This extra explanation does not change your next step.",
-    safety: "Important",
-    actions: "What would you like to do now?",
-    sms: "Send to my phone",
-    draftNote: "Draft guidance for internal demonstration. This is not a clinically validated personalised result.",
+    facility: {
+      title: "Visit a health facility",
+      text: "Find health facilities on a map and get directions.",
+      open: "Find a facility",
+    },
+    backToAnswers: "Back to my answers",
     noResult: {
-      title: "There is no next step to show",
+      title: "There are no next steps to show",
       text: "For your privacy, answers are cleared when a session ends or the page is reloaded. You can start again whenever you are ready.",
     },
+  },
+
+  noConcern: {
+    title: "I don't have a concern",
+    pendingTitle: "This section is being prepared",
+    pendingText:
+      "Information for people without a breast concern is being prepared and reviewed by our clinical lead. It is not available yet.",
+    otherOptions: "In the meantime you can:",
+  },
+
+  finder: {
+    title: "Find healthcare",
+    intro: "Search for health facilities in Lagos State by name or area.",
+    searchLabel: "Search by facility name, ward or area",
+    searchPlaceholder: "For example: Surulere or Ikeja",
+    lgaLabel: "Local government area (LGA)",
+    allLgas: "All LGAs in Lagos",
+    useLocation: "Use my location",
+    locating: "Finding your location…",
+    locationOn: "Sorted by straight-line distance from your location",
+    locationPrivacy: "Your location is used on this screen only. It is not saved or sent anywhere.",
+    stopLocation: "Stop using my location",
+    locationDenied: "Location permission was not given. You can still search by name or area.",
+    locationUnavailable: "Your location could not be found. You can still search by name or area.",
+    locationUnsupported: "This device cannot share its location. You can still search by name or area.",
+    results: (shown: number, total: number) =>
+      shown === total
+        ? `${total.toLocaleString("en-NG")} facilities`
+        : `Showing ${shown.toLocaleString("en-NG")} of ${total.toLocaleString("en-NG")} facilities`,
+    showMore: "Show more facilities",
+    clearFilters: "Clear search",
+    listLabel: "Facilities",
+    mapLabel: "Map of facilities",
+    mapHelp: "Choose a facility in the list or on the map to see its details.",
+    mapOffline: "The map needs an internet connection. The facility list still works.",
+    mapError: "The map could not be loaded. The facility list still works.",
+    loading: "Loading facilities…",
+    empty: "No facilities match your search.",
+    emptyHelp: "Try a different name or area, or choose another LGA.",
+    noData: "There are no facility records to show right now.",
+    unavailable: "Facility information is not available right now.",
+    offline:
+      "You are offline, and the facility list has not been saved on this device yet. Please connect to the internet and try again.",
+    failure: "We couldn't load facility information. Please try again.",
+    generalHelp:
+      "You can still visit your nearest primary healthcare centre or hospital and ask to speak with a healthcare professional.",
+    distance: (km: number) =>
+      km < 1
+        ? `About ${Math.max(50, Math.round((km * 1000) / 50) * 50)} m away in a straight line`
+        : `About ${km.toFixed(1)} km away in a straight line`,
+    distanceNote: "Straight-line distance, not travel distance.",
+    showDetails: "Show details",
+    hideDetails: "Hide details",
+    directions: "Get directions",
+    openMap: "Open in Google Maps",
+    externalNote: "Directions open Google Maps and need an internet connection.",
+    fields: {
+      type: "Type",
+      level: "Level of care",
+      ownership: "Ownership",
+      area: "Area",
+      address: "Address",
+      phone: "Phone",
+      hours: "Opening hours",
+      services: "Services",
+      hfrCode: "Health Facility Registry code",
+      source: "Source",
+    },
+    area: (ward: string | null, lga: string | null, state: string | null) =>
+      [ward ? `${ward} ward` : null, lga ? `${lga} LGA` : null, state ? `${state} State` : null]
+        .filter(Boolean)
+        .join(", "),
+    addressMissing: "Street address not available in this data",
+    notVerified: "Not verified",
+    unverifiedNote:
+      "Phone numbers, opening hours and services are not shown because they have not been verified. Please check with the facility before you travel.",
+    breastCareNote: "Being listed here does not mean a facility offers specialist breast care.",
+    locationNote: "Map position comes from the dataset and may not be exact.",
+    nameDisagreement: "Sources disagreed about this facility's ward or LGA name.",
+    coverageTitle: "About this information",
+    coverage: (count: number, state: string) =>
+      `${count.toLocaleString("en-NG")} health facilities in ${state} State only. This list is not complete and has not been checked by EarlyHer.`,
+    sourceLine: (name: string, released: string) => `Facility data: ${name}, released ${released}.`,
+    savedOn: (date: string) => `Facility list last updated in this app: ${date}.`,
+    offlineReady: "Once loaded, the facility list and search work without internet. The map and directions need internet.",
+    licence: "Licence",
+    simulated: "Demo state selected in the development panel.",
   },
 
   learn: {
@@ -230,40 +228,6 @@ export const ui = {
     illustrationNote: "Illustrations will be added once approved artwork is supplied.",
   },
 
-  healthcare: {
-    title: "Find healthcare",
-    intro: "Choose your area to see places where you can get professional care.",
-    chooseArea: "Choose your area",
-    changeArea: "Choose a different area",
-    loadingAreas: "Looking for areas…",
-    loadingFacilities: "Looking for facilities…",
-    unavailable: "Verified facility information is not available right now.",
-    unavailableHelp:
-      "You can still take a next step: visit your nearest primary healthcare centre or hospital and ask to speak with a healthcare professional.",
-    offline: "You are offline. Facility information needs an internet connection.",
-    failure: "We couldn't load facility information. Please try again.",
-    empty: "We don't have any verified facilities listed for this area yet.",
-    facilitiesIn: (area: string) => `Facilities in ${area}`,
-    viewDetails: "View details",
-    demoBanner: "Demo data. These are fictional examples to show the layout. They are not real places.",
-    verified: "Verified",
-    verifiedOn: (date: string) => `Verified on ${date}`,
-    unverified: "Not verified",
-    fields: {
-      type: "Type",
-      address: "Address",
-      services: "Services",
-      hours: "Opening hours",
-      phone: "Phone",
-      directions: "Directions",
-      distance: "Distance",
-    },
-    notProvided: "Not provided",
-    km: (value: number) => `About ${value.toFixed(1)} km away`,
-    backToList: "Back to facilities",
-    detailMissing: "We couldn't find that facility.",
-    generalGuidanceTitle: "General guidance",
-  },
 
   sms: {
     offerTitle: "Would you like us to send your next steps to your phone?",
@@ -315,7 +279,8 @@ export const ui = {
     facilityHeading: "Where to go",
     qrCaption: "Scan for more information",
     qrMissing: "A QR code will appear here once a public information page is set up.",
-    footer: "EarlyHer gives education and guidance. It does not diagnose breast cancer.",
+    footer:
+      "This tool does not diagnose. It helps you understand your symptoms and connects you to professional care as fast as possible.",
     smsInstead: "Send by SMS instead",
   },
 

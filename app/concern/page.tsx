@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { ConcernPicker } from "@/components/assessment/concern-picker";
+import { ConcernFlow } from "@/components/questionnaire/concern-flow";
 import { ui } from "@/content/en/ui";
 
-export const metadata: Metadata = { title: ui.concern.title };
+export const metadata: Metadata = { title: ui.questionnaire.title };
 
 export default function ConcernPage() {
-  return <ConcernPicker />;
+  return <ConcernFlow />;
 }

@@ -25,8 +25,7 @@ export const httpExplanationService: ExplanationService = {
 
 /** Wording taken from the supplied draft education text, so the demo invents nothing. */
 const SIMULATED_EXPLANATION =
-  "A change doesn't always mean cancer. Many breast changes are caused by conditions that are not cancer. " +
-  "But a new or unusual change should be checked by a healthcare professional.";
+  "A new or unusual change should be checked by a healthcare professional.";
 
 export function createMockExplanationService(delayMs = 1200): ExplanationService {
   return {

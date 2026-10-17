@@ -151,8 +151,39 @@ export const Lock = (p: IconProps) => (
   </Svg>
 );
 
-export const MenuIcon = (p: IconProps) => (
+export const HomeIcon = (p: IconProps) => (
   <Svg {...p}>
-    <path d="M4 7h16M4 12h16M4 17h16" />
+    <path d="M4 11.5 12 5l8 6.5" />
+    <path d="M6.5 9.800V19h11V9.800" />
+    <path d="M10 19v-5h4v5" />
+  </Svg>
+);
+
+export const Video = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="3" y="6.500" width="12.500" height="11" rx="2.500" />
+    <path d="M15.500 10.500 21 7.500v9l-5.500-3" />
+  </Svg>
+);
+
+export const Crosshair = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="12" cy="12" r="7" />
+    <path d="M12 2.500v4M12 17.500v4M2.500 12h4M17.500 12h4" />
+    <circle cx="12" cy="12" r="1.500" />
+  </Svg>
+);
+
+export const ExternalLink = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M14 4h6v6M20 4l-9 9" />
+    <path d="M18 14v4.500A1.500 1.500 0 0 1 16.500 20h-11A1.500 1.500 0 0 1 4 18.500v-11A1.500 1.500 0 0 1 5.500 6H10" />
+  </Svg>
+);
+
+export const Search = (p: IconProps) => (
+  <Svg {...p}>
+    <circle cx="11" cy="11" r="6.500" />
+    <path d="m16 16 4.500 4.500" />
   </Svg>
 );

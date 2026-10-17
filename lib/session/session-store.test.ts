@@ -1,49 +1,32 @@
 import { describe, expect, it, vi } from "vitest";
-import { lumpDemoPathway } from "@/content/pathways/lump.demo";
-import type { ExplanationService } from "@/lib/services/ai-explanation";
-import type { ExplanationResponse, ServiceResult } from "@/lib/types/api";
-import { answerQuestion, chooseConcern, getReachedRecommendation, loadExplanation } from "./actions";
+import { questionnaireFixture } from "@/content/fixtures/questionnaire.fixture";
+import { answerQuestion, canContinue, startQuestionnaire, stepAfter, stepBefore, submitAnswers } from "./actions";
 import { createSessionStore } from "./session-store";
+
+const fixture = questionnaireFixture;
 
 function filledStore() {
   const store = createSessionStore();
-  chooseConcern(store, "lump-or-swelling", lumpDemoPathway.id);
-  answerQuestion(store, lumpDemoPathway, "lump-first-noticed", "1-4-weeks");
-  store.update({ phoneDigits: "08031234567", areaId: "area-1", arrivedWithoutConcern: true });
+  startQuestionnaire(store, fixture);
+  answerQuestion(store, fixture, "q1", "yes");
+  store.update({ phoneDigits: "08031234567", arrivedWithoutConcern: true });
   return store;
 }
 
-/** An explanation service whose reply is released by the test. */
-function deferredService() {
-  let release!: (result: ServiceResult<ExplanationResponse>) => void;
-  let signal: AbortSignal | undefined;
-  const service: ExplanationService = {
-    explain: (_request, taskSignal) => {
-      signal = taskSignal;
-      return new Promise((resolve) => (release = resolve));
-    },
-  };
-  return { service, release: (result: ServiceResult<ExplanationResponse>) => release(result), getSignal: () => signal };
-}
-
-const completeAnswers = { "lump-first-noticed": "unsure", "lump-changed": "unchanged", "lump-painful": "no" };
-
 describe("session reset", () => {
-  it("clears answers, results, phone number and navigation choices", () => {
+  it("clears answers, progress, phone number and navigation choices", () => {
     const store = filledStore();
-    store.update({ explanation: { status: "ready", text: "text", simulated: true } });
+    store.update({ submitted: true });
     expect(store.hasData()).toBe(true);
 
     store.reset();
 
     expect(store.getState()).toMatchObject({
-      concernId: null,
-      pathwayId: null,
+      questionnaireId: null,
       answers: {},
-      editingQuestionId: null,
-      explanation: { status: "idle" },
+      step: null,
+      submitted: false,
       phoneDigits: "",
-      areaId: null,
       arrivedWithoutConcern: false,
     });
     expect(store.hasData()).toBe(false);
@@ -120,89 +103,75 @@ describe("session reset", () => {
   });
 });
 
-describe("late responses", () => {
-  it("does not restore an explanation into a session that has ended", async () => {
+describe("questionnaire session", () => {
+  it("starts at the first question with no answers", () => {
     const store = createSessionStore();
-    chooseConcern(store, "lump-or-swelling", lumpDemoPathway.id);
-    const { service, release, getSignal } = deferredService();
-
-    const pending = loadExplanation(store, service, lumpDemoPathway, "speak-to-professional");
-    expect(store.getState().explanation.status).toBe("loading");
-
-    store.reset();
-    expect(getSignal()?.aborted).toBe(true);
-
-    release({ ok: true, data: { explanation: "Late text from the previous person's session." }, simulated: false });
-    await pending;
-
-    expect(store.getState().explanation).toEqual({ status: "idle" });
-    expect(store.hasData()).toBe(false);
+    startQuestionnaire(store, fixture);
+    expect(store.getState()).toMatchObject({ questionnaireId: fixture.id, answers: {}, step: { questionId: "q1" } });
   });
 
-  it("ignores a reply to a request that newer answers have superseded", async () => {
-    const store = createSessionStore();
-    chooseConcern(store, "lump-or-swelling", lumpDemoPathway.id);
-    const { service, release } = deferredService();
-
-    const pending = loadExplanation(store, service, lumpDemoPathway, "speak-to-professional");
-    answerQuestion(store, lumpDemoPathway, "lump-first-noticed", "unsure");
-
-    release({ ok: true, data: { explanation: "Reply to the earlier answers." }, simulated: false });
-    await pending;
-
-    expect(store.getState().explanation).toEqual({ status: "idle" });
-  });
-});
-
-describe("AI explanation never controls the recommendation", () => {
-  it("keeps the pathway's recommendation whether the explanation succeeds or fails", async () => {
-    for (const result of [
-      { ok: true, data: { explanation: "Extra wording." }, simulated: false },
-      { ok: false, error: "timeout" },
-      { ok: false, error: "invalid-response" },
-      { ok: false, error: "server" },
-      { ok: false, error: "offline" },
-    ] satisfies ServiceResult<ExplanationResponse>[]) {
-      const store = createSessionStore();
-      chooseConcern(store, "lump-or-swelling", lumpDemoPathway.id);
-      store.update({ answers: completeAnswers });
-      const before = getReachedRecommendation(lumpDemoPathway, store.getState().answers);
-
-      await loadExplanation(store, { explain: async () => result }, lumpDemoPathway, "speak-to-professional");
-
-      const after = getReachedRecommendation(lumpDemoPathway, store.getState().answers);
-      expect(after).toEqual(before);
-      expect(after?.id).toBe("speak-to-professional");
-      expect(store.getState().explanation.status).toBe(result.ok ? "ready" : "unavailable");
-    }
-  });
-
-  it("falls back when the service throws", async () => {
-    const store = createSessionStore();
-    const service: ExplanationService = { explain: () => Promise.reject(new Error("network down")) };
-
-    await loadExplanation(store, service, lumpDemoPathway, "speak-to-professional");
-
-    expect(store.getState().explanation).toEqual({ status: "unavailable", reason: "error" });
-  });
-
-  it("sends identifiers only, never answers or phone numbers", async () => {
+  it("keeps answers when moving back and forward", () => {
     const store = filledStore();
-    const explain = vi.fn<ExplanationService["explain"]>(async () => ({ ok: false, error: "server" }));
-
-    await loadExplanation(store, { explain }, lumpDemoPathway, "speak-to-professional");
-
-    expect(explain.mock.calls[0][0]).toEqual({
-      recommendationId: "speak-to-professional",
-      pathwayId: lumpDemoPathway.id,
-      pathwayVersion: lumpDemoPathway.version,
-      questionBankVersion: lumpDemoPathway.questionBankVersion,
-      locale: "en",
-    });
+    const { answers } = store.getState();
+    const next = stepAfter(fixture, answers, { questionId: "q1" });
+    expect(next).toEqual({ questionId: "q1-follow" });
+    expect(stepBefore(fixture, answers, next)).toEqual({ questionId: "q1" });
+    expect(store.getState().answers.q1).toBe("yes");
   });
 
-  it("has no recommendation until the pathway reaches an outcome", () => {
-    expect(getReachedRecommendation(lumpDemoPathway, { "lump-first-noticed": "unsure" })).toBeNull();
-    expect(getReachedRecommendation(null, completeAnswers)).toBeNull();
+  it("skips a follow-up that does not apply", () => {
+    const store = createSessionStore();
+    startQuestionnaire(store, fixture);
+    answerQuestion(store, fixture, "q1", "no");
+    expect(stepAfter(fixture, store.getState().answers, { questionId: "q1" })).toEqual({ questionId: "q2" });
+  });
+
+  it("clears a follow-up answer when the earlier answer changes", () => {
+    const store = filledStore();
+    answerQuestion(store, fixture, "q1-follow", "one");
+    expect(store.getState().answers["q1-follow"]).toBe("one");
+
+    answerQuestion(store, fixture, "q1", "no");
+
+    expect(store.getState().answers).toEqual({ q1: "no" });
+  });
+
+  it("goes from the last question to review, and back from review to the last question", () => {
+    const store = createSessionStore();
+    startQuestionnaire(store, fixture);
+    const answers = { q1: "no", q2: ["a"], q3: "yes" };
+    expect(stepAfter(fixture, answers, { questionId: "q3" })).toEqual({ review: true });
+    expect(stepBefore(fixture, answers, { review: true })).toEqual({ questionId: "q3" });
+    expect(stepBefore(fixture, answers, { questionId: "q1" })).toBeNull();
+  });
+
+  it("requires an answer before continuing, except for optional questions", () => {
+    expect(canContinue(fixture, {}, "q1")).toBe(false);
+    expect(canContinue(fixture, { q1: "unsure" }, "q1")).toBe(true);
+    expect(canContinue(fixture, { q2: ["b"] }, "q2-follow")).toBe(true);
+  });
+
+  it("will not submit while a required question is unanswered", () => {
+    const store = createSessionStore();
+    startQuestionnaire(store, fixture);
+    answerQuestion(store, fixture, "q1", "yes");
+    answerQuestion(store, fixture, "q2", ["a"]);
+    answerQuestion(store, fixture, "q3", "no");
+
+    expect(submitAnswers(store, fixture)).toEqual({ ok: false, questionId: "q1-follow" });
+    expect(store.getState().submitted).toBe(false);
+
+    answerQuestion(store, fixture, "q1-follow", "two");
+    expect(submitAnswers(store, fixture)).toEqual({ ok: true });
+    expect(store.getState().submitted).toBe(true);
+  });
+
+  it("marks answers as not submitted again after any change", () => {
+    const store = createSessionStore();
+    startQuestionnaire(store, fixture);
+    for (const [id, value] of Object.entries({ q1: "no", q2: ["c"], q3: "no" })) answerQuestion(store, fixture, id, value);
+    submitAnswers(store, fixture);
+    answerQuestion(store, fixture, "q3", "yes");
+    expect(store.getState().submitted).toBe(false);
   });
 });

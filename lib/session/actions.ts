@@ -1,82 +1,75 @@
-import { getRecommendation } from "@/content/en/clinical";
-import { appConfig } from "@/lib/config";
-import { applyAnswer, getActivePath } from "@/lib/engine/pathway-engine";
-import type { ExplanationService } from "@/lib/services/ai-explanation";
-import type { ConcernId, Pathway } from "@/lib/types/clinical";
-import type { ExplanationState, SessionStore } from "./session-store";
+import { firstUnanswered, isAnswered, setAnswer, visibleQuestions } from "@/lib/questionnaire/engine";
+import type { AnswerValue, Questionnaire } from "@/lib/types/questionnaire";
+import type { QuestionnaireStep, SessionStore } from "./session-store";
 
-/** Session changes shared by the screens. Kept free of React so they can be tested directly. */
+/**
+ * Questionnaire session changes shared by the screens. Kept free of React so they can
+ * be tested directly. Answers stay in memory: nothing here stores, sends or logs them.
+ */
 
-export function chooseConcern(store: SessionStore, concernId: ConcernId | null, pathwayId: string | null) {
+export function startQuestionnaire(store: SessionStore, questionnaire: Questionnaire) {
+  const first = visibleQuestions(questionnaire, {})[0];
   store.update({
-    concernId,
-    pathwayId,
+    questionnaireId: questionnaire.id,
     answers: {},
-    editingQuestionId: null,
-    explanation: { status: "idle" },
+    step: first ? { questionId: first.id } : { review: true },
+    submitted: false,
   });
 }
 
-/**
- * Stores an answer, drops answers from branches that no longer apply, and clears any
- * explanation prepared for the earlier answers.
- */
-export function answerQuestion(store: SessionStore, pathway: Pathway, questionId: string, answer: string) {
-  const answers = applyAnswer(pathway, store.getState().answers, questionId, answer);
-  store.update({ answers, editingQuestionId: null, explanation: { status: "idle" } });
-}
-
-/** The recommendation the pathway has reached, or null while questions remain. */
-export function getReachedRecommendation(pathway: Pathway | null, answers: Record<string, string>) {
-  if (!pathway) return null;
-  const { outcomeId } = getActivePath(pathway, answers);
-  const outcome = outcomeId ? pathway.outcomes[outcomeId] : undefined;
-  return getRecommendation(outcome?.recommendationId);
-}
-
-/**
- * Asks for the optional AI explanation. Whatever happens, the recommendation is
- * untouched: a failure only sets a status the screen uses to show the fallback, and
- * an answer that arrives after the session ended is discarded.
- */
-export async function loadExplanation(
+/** Records (or clears) an answer and drops answers to follow-ups that no longer apply. */
+export function answerQuestion(
   store: SessionStore,
-  service: ExplanationService,
-  pathway: Pathway,
-  recommendationId: string,
-): Promise<void> {
-  if (store.getState().explanation.status !== "idle") return;
+  questionnaire: Questionnaire,
+  questionId: string,
+  value: AnswerValue | undefined,
+) {
+  const answers = setAnswer(questionnaire, store.getState().answers, questionId, value);
+  store.update({ answers, submitted: false });
+}
 
-  const epoch = store.getState().epoch;
-  const task = store.startTask();
-  // Identity of this object marks the request, so a reply to a superseded request is ignored.
-  const pending: ExplanationState = { status: "loading" };
-  store.update({ explanation: pending });
+/** The step after `step`, given the current answers: the next applicable question, then review. */
+export function stepAfter(
+  questionnaire: Questionnaire,
+  answers: Record<string, AnswerValue>,
+  step: QuestionnaireStep,
+): QuestionnaireStep {
+  if ("review" in step) return step;
+  const visible = visibleQuestions(questionnaire, answers);
+  const index = visible.findIndex((q) => q.id === step.questionId);
+  const next = index >= 0 ? visible[index + 1] : undefined;
+  return next ? { questionId: next.id } : { review: true };
+}
 
-  const result = await service
-    .explain(
-      {
-        recommendationId,
-        pathwayId: pathway.id,
-        pathwayVersion: pathway.version,
-        questionBankVersion: pathway.questionBankVersion,
-        locale: appConfig.defaultLocale,
-      },
-      task.signal,
-    )
-    .catch(() => ({ ok: false as const, error: "server" as const }));
-  task.done();
-
-  if (!task.isCurrent() || store.getState().explanation !== pending) return;
-
-  if (result.ok) {
-    store.updateIfCurrent(epoch, {
-      explanation: { status: "ready", text: result.data.explanation, simulated: result.simulated },
-    });
-    return;
+/** The step before `step`, or null at the first question. */
+export function stepBefore(
+  questionnaire: Questionnaire,
+  answers: Record<string, AnswerValue>,
+  step: QuestionnaireStep,
+): QuestionnaireStep | null {
+  const visible = visibleQuestions(questionnaire, answers);
+  if ("review" in step) {
+    const last = visible[visible.length - 1];
+    return last ? { questionId: last.id } : null;
   }
-  if (result.error === "aborted") return;
-  const reason =
-    result.error === "offline" ? "offline" : result.error === "timeout" ? "timeout" : result.error === "invalid-response" ? "invalid" : "error";
-  store.updateIfCurrent(epoch, { explanation: { status: "unavailable", reason } });
+  const index = visible.findIndex((q) => q.id === step.questionId);
+  const previous = index > 0 ? visible[index - 1] : undefined;
+  return previous ? { questionId: previous.id } : null;
+}
+
+/** Whether the person may move on from this question (answered, or optional). */
+export function canContinue(questionnaire: Questionnaire, answers: Record<string, AnswerValue>, questionId: string) {
+  const question = questionnaire.questions.find((q) => q.id === questionId);
+  return !question || !question.required || isAnswered(question, answers[questionId]);
+}
+
+/**
+ * Confirms the answers from the review step. If a required question is still open,
+ * returns that question instead so the screen can take the person to it.
+ */
+export function submitAnswers(store: SessionStore, questionnaire: Questionnaire): { ok: true } | { ok: false; questionId: string } {
+  const missing = firstUnanswered(questionnaire, store.getState().answers);
+  if (missing) return { ok: false, questionId: missing.id };
+  store.update({ submitted: true });
+  return { ok: true };
 }

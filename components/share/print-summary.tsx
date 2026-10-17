@@ -31,10 +31,7 @@ export function PrintSummary({ content, onScreen = false }: { content: ShareCont
     >
       <header className="flex items-center gap-3 border-b border-black/20 pb-3">
         <img src="/brand/earlyher-logo.png" alt={ui.logoAlt} width={56} height={56} className="size-14" />
-        <div>
-          <p className="text-xl font-bold leading-tight">{ui.appName}</p>
-          <p className="text-sm">{ui.home.headlineStart} {ui.home.headlineAccent}</p>
-        </div>
+        <p className="text-xl font-bold leading-tight">{ui.appName}</p>
       </header>
 
       <section>
@@ -47,13 +44,13 @@ export function PrintSummary({ content, onScreen = false }: { content: ShareCont
       {printableFacility && (
         <section>
           <h3 className="text-lg font-bold">{ui.print.facilityHeading}</h3>
-          {printableFacility.demo && <p className="text-sm font-semibold uppercase">{ui.healthcare.demoBanner}</p>}
+          {printableFacility.demo && <p className="text-sm font-semibold uppercase">{ui.common.demo}</p>}
           <p className="mt-1 text-base font-semibold">{printableFacility.name}</p>
           <p className="text-base">{printableFacility.address}</p>
           {printableFacility.openingHours && <p className="text-base">{printableFacility.openingHours}</p>}
           {printableFacility.phone && (
             <p className="text-base">
-              {ui.healthcare.fields.phone}: {printableFacility.phone}
+              {ui.finder.fields.phone}: {printableFacility.phone}
             </p>
           )}
           {printableFacility.directions && <p className="text-base">{printableFacility.directions}</p>}

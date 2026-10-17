@@ -1,25 +1,19 @@
-import type { Concern, Recommendation } from "@/lib/types/clinical";
+import type { Recommendation } from "@/lib/types/clinical";
 
 /**
- * English clinical wording: concerns, safety message and next-step guidance.
- * Everything here is DRAFT text from the product brief and needs clinical review
- * before public deployment.
+ * English clinical wording: the disclaimer and draft next-step guidance.
+ * Everything except the disclaimer is DRAFT text from the product brief and needs
+ * clinical review before public deployment.
  */
 
-export const concerns: Concern[] = [
-  { id: "lump-or-swelling", label: "Lump or swelling", pathwayId: "lump-or-swelling" },
-  { id: "pain-or-discomfort", label: "Breast pain or discomfort", pathwayId: null },
-  { id: "size-or-shape", label: "Change in breast size or shape", pathwayId: null },
-  { id: "skin-changes", label: "Skin changes", pathwayId: null },
-  { id: "nipple-changes", label: "Nipple changes", pathwayId: null },
-  { id: "nipple-discharge", label: "Nipple discharge", pathwayId: null },
-  { id: "other-change", label: "Other unusual change", pathwayId: null },
-  { id: "not-sure", label: "I'm not sure", pathwayId: null },
-];
-
+/** The disclaimer shown beneath the questionnaire and on the next-steps screen. Wording supplied verbatim. */
 export const safetyMessage = {
-  text: "This tool does not diagnose breast cancer. It helps you understand your responses and provides guidance on when to seek professional care.",
-  review: { status: "draft", note: "Wording requires clinical review before public deployment." } as const,
+  text: "This tool does not diagnose. It helps you understand your symptoms and connects you to professional care as fast as possible.",
+  review: {
+    status: "approved",
+    reviewedBy: "EarlyHer project team (exact wording supplied)",
+    reviewedOn: "2026-10-17",
+  } as const,
 };
 
 export const recommendations: Record<string, Recommendation> = {

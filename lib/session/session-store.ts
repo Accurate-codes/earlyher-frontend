@@ -1,29 +1,25 @@
-import type { ConcernId } from "@/lib/types/clinical";
+import type { AnswerValue } from "@/lib/types/questionnaire";
 
 /**
  * Temporary, in-memory session. Nothing here is written to localStorage, IndexedDB,
  * cookies or the URL, so a page refresh or a reset leaves no trace of the previous person.
  */
 
-export type ExplanationState =
-  | { status: "idle" }
-  | { status: "loading" }
-  | { status: "ready"; text: string; simulated: boolean }
-  | { status: "unavailable"; reason: "offline" | "timeout" | "invalid" | "error" };
+/** Where the person is in the questionnaire: a question id, or the review step. */
+export type QuestionnaireStep = { questionId: string } | { review: true };
 
 export interface SessionState {
   /** Increases on every reset. Work started in an earlier epoch must not write to the session. */
   epoch: number;
-  concernId: ConcernId | null;
-  pathwayId: string | null;
-  answers: Record<string, string>;
-  /** Question reopened for editing from the review list, if any. */
-  editingQuestionId: string | null;
-  explanation: ExplanationState;
+  /** Questionnaire being answered. */
+  questionnaireId: string | null;
+  /** Answers to the questionnaire. Held in memory only; never stored, sent or logged. */
+  answers: Record<string, AnswerValue>;
+  step: QuestionnaireStep | null;
+  /** True once the person has confirmed their answers on the review step. */
+  submitted: boolean;
   /** Digits typed for the optional SMS. Cleared on reset. */
   phoneDigits: string;
-  /** Area chosen in healthcare navigation. */
-  areaId: string | null;
   /** True when the person arrived at education by saying they have no concern. */
   arrivedWithoutConcern: boolean;
 }
@@ -43,13 +39,11 @@ type Cleanup = () => void;
 function initialState(epoch: number): SessionState {
   return {
     epoch,
-    concernId: null,
-    pathwayId: null,
+    questionnaireId: null,
     answers: {},
-    editingQuestionId: null,
-    explanation: { status: "idle" },
+    step: null,
+    submitted: false,
     phoneDigits: "",
-    areaId: null,
     arrivedWithoutConcern: false,
   };
 }
@@ -120,11 +114,9 @@ export function createSessionStore() {
     /** True when the session holds anything belonging to a person. */
     hasData(): boolean {
       return (
-        state.concernId !== null ||
-        state.pathwayId !== null ||
+        state.questionnaireId !== null ||
         Object.keys(state.answers).length > 0 ||
         state.phoneDigits !== "" ||
-        state.areaId !== null ||
         state.arrivedWithoutConcern
       );
     },

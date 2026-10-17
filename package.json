@@ -12,6 +12,7 @@
     "verify:browser": "node scripts/verify-browser.mjs"
   },
   "dependencies": {
+    "leaflet": "^1.9.4",
     "next": "16.4.0",
     "qrcode-generator": "1.4.4",
     "react": "19.3.0",
@@ -19,6 +20,7 @@
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
+    "@types/leaflet": "^1.9.20",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

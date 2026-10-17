@@ -3,76 +3,70 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Suspense, useLayoutEffect, useState } from "react";
+import { Suspense, useEffect } from "react";
 import { useSessionControls } from "@/components/session/session-provider";
-import { MenuIcon } from "@/components/ui/icons";
-import { ui } from "@/content/en/ui";
-import { useOnline, useSession } from "@/lib/hooks";
+import { Info } from "@/components/ui/icons";
+import { useSession, useUi } from "@/lib/hooks";
+import { localeStore } from "@/lib/i18n/locale-store";
+import { LOCALES } from "@/lib/i18n/translate";
 import { sessionStore } from "@/lib/session/session-store";
 
-const links = [
-  { href: "/", label: ui.nav.home },
-  { href: "/concern", label: ui.nav.concern },
-  { href: "/learn", label: ui.nav.learn },
-  { href: "/healthcare", label: ui.nav.healthcare },
-] as const;
+/** English / Yorùbá switch. Each language is named in its own language. */
+function LanguageSelector() {
+  const { ui, locale, fallback } = useUi();
 
-function isActive(pathname: string | null, href: string) {
-  if (!pathname) return false;
-  return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
-}
+  // Only mark the page as Yoruba once its text actually is; English text keeps lang="en".
+  useEffect(() => {
+    document.documentElement.lang = locale === "yo" && !fallback ? "yo" : "en";
+  }, [locale, fallback]);
 
-function ConnectivityBadge() {
-  const online = useOnline();
   return (
-    <span
-      role="status"
-      title={online ? undefined : ui.connectivity.offlineDetail}
-      className="inline-flex items-center gap-2 rounded-full border border-line bg-white/80 px-3 py-1.5 text-sm font-medium text-ink-soft"
-    >
-      <span className={`size-2.5 rounded-full ${online ? "bg-emerald-500" : "bg-amber-500"}`} aria-hidden="true" />
-      {online ? ui.connectivity.online : ui.connectivity.offline}
-      {!online && <span className="sr-only">. {ui.connectivity.offlineDetail}</span>}
-    </span>
+    <div role="group" aria-label={ui.language.label} className="flex rounded-full border border-line bg-white p-1 shadow-soft">
+      {LOCALES.map((code) => {
+        const active = code === locale;
+        return (
+          <button
+            key={code}
+            type="button"
+            lang={code}
+            aria-pressed={active}
+            onClick={() => localeStore.set(code)}
+            className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-full px-4 text-base font-semibold transition-colors ${
+              active ? "bg-brand-600 text-white" : "text-ink-soft hover:bg-brand-50 hover:text-ink"
+            }`}
+          >
+            {ui.language.names[code]}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
-function NavLinks({ pathname, onNavigate, stacked }: { pathname: string | null; onNavigate?: () => void; stacked?: boolean }) {
+/** Says plainly that untranslated text is in English while Yoruba is selected. */
+function TranslationNotice() {
+  const { ui, locale, fallback } = useUi();
+  if (locale !== "yo" || !fallback) return null;
   return (
-    <>
-      {links.map((link) => {
-        const active = isActive(pathname, link.href);
-        return (
-          <Link
-            key={link.href}
-            href={link.href}
-            onClick={onNavigate}
-            aria-current={active ? "page" : undefined}
-            className={`inline-flex min-h-12 items-center rounded-full px-4 text-base font-medium transition-colors ${
-              stacked ? "w-full" : ""
-            } ${active ? "bg-brand-100 text-brand-800" : "text-ink-soft hover:bg-brand-50 hover:text-ink"}`}
-          >
-            {link.label}
-          </Link>
-        );
-      })}
-    </>
+    <div role="status" className="border-b border-amber-200 bg-amber-50 text-amber-950">
+      <p lang="en" className="mx-auto flex w-full max-w-6xl items-start gap-2 px-4 py-2 text-base sm:px-6">
+        <Info className="mt-0.5 size-5 shrink-0" />
+        {ui.language.pending}
+      </p>
+    </div>
   );
 }
 
 function HeaderContent({ pathname }: { pathname: string | null }) {
   const { requestFinish } = useSessionControls();
+  const { ui } = useUi();
   useSession();
-  const [menuOpen, setMenuOpen] = useState(false);
-  // Finish is offered once there is something to clear or the person has left the welcome screen.
+  // Finish is offered once there is something to clear or the person has left the start screen.
   const canFinish = sessionStore.hasData() || (pathname !== null && pathname !== "/");
-
-  // Close the menu when this screen is hidden so it is not open on return.
-  useLayoutEffect(() => () => setMenuOpen(false), [pathname]);
 
   return (
     <header className="relative z-20 border-b border-line/70 bg-canvas/85 backdrop-blur print:hidden">
-      <div className="mx-auto flex w-full max-w-6xl items-center gap-3 px-4 py-3 sm:px-6">
+      <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-3 px-4 py-3 sm:px-6">
         <Link href="/" aria-label={`${ui.appName} — ${ui.common.home}`} className="shrink-0 rounded-full">
           <Image
             src="/brand/earlyher-logo.png"
@@ -80,16 +74,14 @@ function HeaderContent({ pathname }: { pathname: string | null }) {
             width={56}
             height={56}
             priority
+            // Served as the precached file so the logo also shows offline.
+            unoptimized
             className="size-12 sm:size-14"
           />
         </Link>
 
-        <nav aria-label="Main" className="mx-auto hidden items-center gap-1 lg:flex">
-          <NavLinks pathname={pathname} />
-        </nav>
-
-        <div className="ml-auto flex items-center gap-2 lg:ml-0">
-          <ConnectivityBadge />
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+          <LanguageSelector />
           {canFinish && (
             <button
               type="button"
@@ -99,28 +91,9 @@ function HeaderContent({ pathname }: { pathname: string | null }) {
               {ui.common.finish}
             </button>
           )}
-          <button
-            type="button"
-            aria-expanded={menuOpen}
-            aria-controls="mobile-menu"
-            onClick={() => setMenuOpen((open) => !open)}
-            className="grid size-12 place-items-center rounded-full border border-line bg-white text-ink lg:hidden"
-          >
-            <MenuIcon />
-            <span className="sr-only">{ui.common.menu}</span>
-          </button>
         </div>
       </div>
-
-      {menuOpen && (
-        <nav
-          id="mobile-menu"
-          aria-label="Main"
-          className="absolute inset-x-0 top-full flex flex-col gap-1 border-b border-line bg-canvas px-4 py-3 shadow-soft sm:px-6 lg:hidden"
-        >
-          <NavLinks pathname={pathname} onNavigate={() => setMenuOpen(false)} stacked />
-        </nav>
-      )}
+      <TranslationNotice />
     </header>
   );
 }

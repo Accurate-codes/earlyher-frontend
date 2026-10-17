@@ -2,9 +2,8 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ArrowRight, BookOpen, ChatQuestion, MapPin } from "@/components/ui/icons";
-import { ui } from "@/content/en/ui";
-import { sessionStore } from "@/lib/session/session-store";
+import { ArrowRight, ChatQuestion, Heart, MapPin } from "@/components/ui/icons";
+import { useUi } from "@/lib/hooks";
 
 interface Journey {
   href: string;
@@ -12,31 +11,17 @@ interface Journey {
   text: string;
   icon: ReactNode;
   primary?: boolean;
-  onChoose?: () => void;
 }
-
-const journeys: Journey[] = [
-  {
-    href: "/concern",
-    ...ui.home.journeys.concern,
-    icon: <ChatQuestion className="size-7" />,
-    primary: true,
-  },
-  {
-    href: "/learn",
-    ...ui.home.journeys.learn,
-    icon: <BookOpen className="size-7" />,
-    onChoose: () => sessionStore.update({ arrivedWithoutConcern: true }),
-  },
-  {
-    href: "/healthcare",
-    ...ui.home.journeys.healthcare,
-    icon: <MapPin className="size-7" />,
-  },
-];
 
 /** The three ways into the application. Real links, so they work with keyboard, touch and screen readers. */
 export function JourneyChoices() {
+  const { ui } = useUi();
+  const journeys: Journey[] = [
+    { href: "/concern", ...ui.home.journeys.concern, icon: <ChatQuestion className="size-7" />, primary: true },
+    { href: "/no-concern", ...ui.home.journeys.noConcern, icon: <Heart className="size-7" /> },
+    { href: "/healthcare", ...ui.home.journeys.healthcare, icon: <MapPin className="size-7" /> },
+  ];
+
   return (
     <nav aria-label={ui.home.journeysLabel} className="w-full">
       <ul className="grid gap-3 sm:gap-4 md:grid-cols-3">
@@ -44,7 +29,6 @@ export function JourneyChoices() {
           <li key={journey.href} className="flex">
             <Link
               href={journey.href}
-              onClick={journey.onChoose}
               className={`group flex min-h-24 w-full items-center gap-4 rounded-[1.75rem] border p-4 text-left shadow-soft transition-[transform,box-shadow,border-color] duration-150 hover:-translate-y-0.5 hover:shadow-lift active:translate-y-0 sm:p-5 md:flex-col md:items-start md:gap-5 md:p-6 ${
                 journey.primary
                   ? "border-brand-600 bg-brand-600 text-white"

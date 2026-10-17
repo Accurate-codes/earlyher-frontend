@@ -1,9 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { fixtureFacilities } from "@/content/fixtures/facilities.fixture";
 import { parseExplanation, parseFacility, parseSmsResponse } from "@/lib/validation/api-guards";
 import { checkPhoneNumber, formatPhoneDigits, sanitiseDigits } from "@/lib/validation/phone";
 import { createMockExplanationService } from "./ai-explanation";
-import { createMockFacilityService } from "./facilities";
 import { requestJson } from "./http";
 import { mockScenarios } from "./mock-scenarios";
 import { createMockSmsService } from "./sms";
@@ -73,42 +71,7 @@ describe("AI explanation fallback", () => {
   });
 });
 
-describe("facility fallback", () => {
-  const service = createMockFacilityService(1);
-
-  it("reports unavailable by default because no verified data source exists", async () => {
-    await expect(service.listAreas()).resolves.toEqual({ ok: false, error: "unavailable" });
-    await expect(service.listFacilities("demo-area-1")).resolves.toEqual({ ok: false, error: "unavailable" });
-  });
-
-  it("reports a service failure", async () => {
-    mockScenarios.set({ facilities: "error" });
-    await expect(service.listAreas()).resolves.toEqual({ ok: false, error: "server" });
-  });
-
-  it("returns an empty list for an area with no facilities", async () => {
-    mockScenarios.set({ facilities: "empty" });
-    await expect(service.listFacilities("demo-area-1")).resolves.toEqual({ ok: true, data: [], simulated: true });
-  });
-
-  it("marks fixture results as simulated and reports an unknown facility as unavailable", async () => {
-    mockScenarios.set({ facilities: "fixtures" });
-    const list = await service.listFacilities("demo-area-1");
-    expect(list).toMatchObject({ ok: true, simulated: true });
-    await expect(service.getFacility("does-not-exist")).resolves.toEqual({ ok: false, error: "unavailable" });
-  });
-
-  it("ships fixtures with no actionable contact details, directions or distances", () => {
-    for (const facility of fixtureFacilities) {
-      expect(facility.demo).toBe(true);
-      expect(facility.verification.status).toBe("unverified");
-      expect(facility.phone).toBeUndefined();
-      expect(facility.directions).toBeUndefined();
-      expect(facility.distanceKm).toBeUndefined();
-      expect(facility.publicUrl).toBeUndefined();
-    }
-  });
-
+describe("backend facility guard", () => {
   it("drops a phone number from a facility the backend has not verified", () => {
     const base = { id: "f1", name: "Name", type: "Type", areaId: "a1", address: "Address", phone: "08030000000" };
     expect(parseFacility({ ...base, verification: { status: "unverified" } })?.phone).toBeUndefined();

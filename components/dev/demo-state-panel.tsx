@@ -10,7 +10,7 @@ import { isMockMode } from "@/lib/services";
 const options: { [K in keyof MockScenarios]: { label: string; values: MockScenarios[K][] } } = {
   ai: { label: ui.dev.ai, values: ["success", "timeout", "invalid", "error"] },
   sms: { label: ui.dev.sms, values: ["accepted", "queued", "failure"] },
-  facilities: { label: ui.dev.facilities, values: ["unavailable", "fixtures", "empty", "error"] },
+  facilities: { label: ui.dev.facilities, values: ["snapshot", "empty", "unavailable", "offline", "error"] },
   printer: { label: ui.dev.printer, values: ["unknown", "unavailable"] },
 };
 

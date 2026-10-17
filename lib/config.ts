@@ -20,9 +20,6 @@ export const appConfig = {
   /** Time the warning stays up before the session is cleared. */
   inactivityWarningMs: seconds(process.env.NEXT_PUBLIC_INACTIVITY_WARNING_SECONDS, 30),
 
-  /** Longest voice note a person can record. */
-  maxRecordingMs: seconds(process.env.NEXT_PUBLIC_MAX_RECORDING_SECONDS, 30),
-
   timeouts: {
     aiExplanationMs: 8000,
     facilitiesMs: 10000,
@@ -46,4 +43,35 @@ export const appConfig = {
     (process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_SHOW_DEV_FIXTURES !== "false"),
 
   defaultLocale: "en" as const,
+
+  /**
+   * Approved telemedicine destination. Both values must be set, and the URL must be
+   * https, or the results screen says online consultations are not available yet.
+   */
+  telemedicine: httpsUrl(process.env.NEXT_PUBLIC_TELEMEDICINE_URL) && process.env.NEXT_PUBLIC_TELEMEDICINE_NAME?.trim()
+    ? { url: httpsUrl(process.env.NEXT_PUBLIC_TELEMEDICINE_URL)!, name: process.env.NEXT_PUBLIC_TELEMEDICINE_NAME.trim() }
+    : null,
+
+  /**
+   * Map tiles. The default is the OpenStreetMap Foundation's standard tile server, which
+   * allows light use with visible attribution and no bulk or offline caching, and offers
+   * no service guarantee. Set a contracted provider for production kiosks.
+   */
+  map: {
+    tileUrl: process.env.NEXT_PUBLIC_MAP_TILE_URL?.trim() || "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+    attribution:
+      process.env.NEXT_PUBLIC_MAP_ATTRIBUTION?.trim() ||
+      '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
+    maxZoom: 19,
+  },
 };
+
+function httpsUrl(value: string | undefined): string | null {
+  if (!value) return null;
+  try {
+    const url = new URL(value.trim());
+    return url.protocol === "https:" ? url.toString() : null;
+  } catch {
+    return null;
+  }
+}

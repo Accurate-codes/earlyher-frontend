@@ -6,15 +6,15 @@
 export interface MockScenarios {
   ai: "success" | "timeout" | "invalid" | "error";
   sms: "accepted" | "queued" | "failure";
-  /** "unavailable" is the honest default: no verified facility data has been supplied. */
-  facilities: "unavailable" | "fixtures" | "empty" | "error";
+  /** "snapshot" loads the real Lagos snapshot; the others simulate failures for review. */
+  facilities: "snapshot" | "empty" | "unavailable" | "offline" | "error";
   printer: "unknown" | "unavailable";
 }
 
 const defaults: MockScenarios = {
   ai: "success",
   sms: "accepted",
-  facilities: "unavailable",
+  facilities: "snapshot",
   printer: "unknown",
 };
 

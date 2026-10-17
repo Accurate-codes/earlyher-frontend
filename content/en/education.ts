@@ -74,13 +74,6 @@ export const educationModules: EducationModule[] = [
         audioKey: "learn.changes.list",
       },
       {
-        id: "not-always-cancer",
-        heading: "A change doesn't always mean cancer",
-        body: "Many breast changes are caused by conditions that are not cancer.",
-        callout: "But a new or unusual change should be checked by a healthcare professional.",
-        audioKey: "learn.changes.not-always-cancer",
-      },
-      {
         id: "noticed",
         heading: changesQuestion,
         body: "If you have, we can ask a few questions to help you find your next step.",

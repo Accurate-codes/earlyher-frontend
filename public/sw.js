@@ -1,12 +1,13 @@
 /*
  * EarlyHer service worker: keeps the core screens working without a connection.
  *
- * What is cached: the application's own pages, scripts, styles, fonts, images and
- * audio. All of it is public and identical for every person.
+ * What is cached: the application's own pages, scripts, styles, fonts, images, audio
+ * and the public facility snapshot (/data/). All of it is identical for every person.
  *
  * What is never cached: anything sent with POST, anything on another origin (the
- * Python backend: AI, SMS and facility requests), and anything under /api/. Answers,
- * phone numbers and recordings never reach this file at all; they live in page memory.
+ * Python backend, map tiles, Google Maps), and anything under /api/. Map tiles are
+ * deliberately not stored: the tile provider's terms forbid offline/bulk caching.
+ * Answers, phone numbers and locations never reach this file; they live in page memory.
  */
 
 // The page registers this file as /sw.js?v=<build id>, so each deployment gets fresh caches.
@@ -20,8 +21,8 @@ const ROUTE_DATA = `${PREFIX}${VERSION}-route-data`;
 const PRECACHE_PAGES = [
   "/",
   "/concern",
-  "/assessment",
   "/next-step",
+  "/no-concern",
   "/learn",
   "/learn/know-your-breasts",
   "/learn/changes-to-look-out-for",
@@ -30,7 +31,13 @@ const PRECACHE_PAGES = [
   "/healthcare",
 ];
 
-const PRECACHE_URLS = ["/brand/earlyher-logo.png", "/brand/icon-192.png", "/manifest.webmanifest"];
+// The facility snapshot is precached so the list and search work offline (CC BY 4.0 data).
+const PRECACHE_URLS = [
+  "/brand/earlyher-logo.png",
+  "/brand/icon-192.png",
+  "/manifest.webmanifest",
+  "/data/facilities-lagos.json",
+];
 
 const NAVIGATION_TIMEOUT_MS = 4000;
 
@@ -106,7 +113,7 @@ async function handleNavigation(request) {
     if (response.ok && PRECACHE_PAGES.includes(url.pathname)) cache.put(url.pathname, response.clone());
     return response;
   } catch {
-    // Facility pages share one shell; any other unknown page falls back to the welcome screen.
+    // Any unknown page falls back to the welcome screen.
     return (await cache.match(url.pathname)) || (await cache.match("/")) || Response.error();
   }
 }

@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { NextStepView } from "@/components/next-step/next-step-view";
+import { ResultsView } from "@/components/results/results-view";
 import { ui } from "@/content/en/ui";
 
-export const metadata: Metadata = { title: ui.nextStep.title };
+export const metadata: Metadata = { title: ui.results.title };
 
 export default function NextStepPage() {
-  return <NextStepView />;
+  return <ResultsView />;
 }

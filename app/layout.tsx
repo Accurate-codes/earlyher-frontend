@@ -17,8 +17,8 @@ const jakarta = localFont({
 });
 
 export const metadata: Metadata = {
-  title: { default: "EarlyHer — Your breast health matters", template: "%s — EarlyHer" },
-  description: "Learn about breast health, understand changes, and find your next step.",
+  title: { default: "EarlyHer", template: "%s — EarlyHer" },
+  description: "Breast-health questions and help finding professional care.",
   applicationName: "EarlyHer",
   // Health guidance for a kiosk; keep it out of search indexes while content is in draft.
   robots: { index: false, follow: false },

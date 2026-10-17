@@ -1,18 +1,17 @@
 import { appConfig } from "@/lib/config";
 import { createMockExplanationService, httpExplanationService } from "./ai-explanation";
-import { createMockFacilityService, httpFacilityService } from "./facilities";
 import { mockScenarios } from "./mock-scenarios";
 import { createMockSmsService, httpSmsService } from "./sms";
 
 /**
- * The adapters the interface uses. Set NEXT_PUBLIC_API_MODE=http and
- * NEXT_PUBLIC_API_BASE_URL to switch every adapter to the Python backend.
+ * The adapters for the Python backend. Set NEXT_PUBLIC_API_MODE=http and
+ * NEXT_PUBLIC_API_BASE_URL to switch them from mocks to the backend. Facility data
+ * comes from the bundled snapshot instead (lib/facilities).
  */
 const live = appConfig.apiMode === "http";
 
 export const isMockMode = !live;
 export const explanationService = live ? httpExplanationService : createMockExplanationService();
-export const facilityService = live ? httpFacilityService : createMockFacilityService();
 export const smsService = live ? httpSmsService : createMockSmsService();
 
 export type PrinterStatus = "unknown" | "unavailable";
