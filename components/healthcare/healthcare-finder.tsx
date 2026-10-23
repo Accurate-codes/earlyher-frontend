@@ -12,6 +12,7 @@ import { filterFacilities, listLgas, sortFacilities } from "@/lib/facilities/sea
 import type { FacilityDataset, LatLng } from "@/lib/types/facility";
 import type { ServiceErrorKind } from "@/lib/types/api";
 import { useServiceResult } from "@/lib/use-service-result";
+import { AssessmentContext } from "./assessment-context";
 import { FacilityListItem } from "./facility-list-item";
 import { FacilityMap } from "./facility-map";
 
@@ -279,6 +280,7 @@ export function HealthcareFinder() {
     <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
       <FlowNav back={{ href: "/" }} />
       <PageHeading title={ui.finder.title} lead={ui.finder.intro} />
+      <AssessmentContext />
       {result === "loading" || result === null ? (
         <p role="status" className="flex items-center justify-center gap-3 py-10 text-lg font-semibold text-ink-soft">
           <span className="pulse-dot size-3 rounded-full bg-brand-500" aria-hidden="true" />

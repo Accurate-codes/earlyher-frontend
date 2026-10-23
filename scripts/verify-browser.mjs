@@ -5,7 +5,7 @@
  *
  * Uses the Chrome or Edge already installed on the machine through playwright-core,
  * so no browser download is needed. Screenshots go to verification/screens/.
- * --fixtures runs the questionnaire checks; the build must have NEXT_PUBLIC_SHOW_DEV_FIXTURES=true.
+ * --fixtures also runs the demo-state checks; the build must have NEXT_PUBLIC_SHOW_DEV_FIXTURES=true.
  * --timeout also waits through the real inactivity timeout (about 2.5 minutes).
  *
  * Map tile requests are blocked except in one check, so automated runs do not load
@@ -13,6 +13,7 @@
  */
 import { mkdirSync } from "node:fs";
 import { chromium } from "playwright-core";
+import { checkTriage } from "./verify-triage.mjs";
 
 const args = process.argv.slice(2);
 const base = args.includes("--base") ? args[args.indexOf("--base") + 1] : "http://localhost:3000";
@@ -43,7 +44,7 @@ const viewports = [
   [1280, 1024],
   [1920, 1080],
 ];
-const pages = ["/", "/concern", "/no-concern", "/healthcare", "/next-step"];
+const pages = ["/", "/concern", "/no-concern", "/healthcare", "/next-step", "/privacy"];
 
 const results = [];
 function record(name, ok, detail = "") {
@@ -153,34 +154,56 @@ try {
     await context.close();
   }
 
-  // 4. Entry points, Back/Home, pending states, disclaimer and care options.
+  // 4. Entry points, Back/Home, emergency banner, disclaimer and care options.
   {
     const context = await newContext(browser, { viewport: { width: 390, height: 844 } });
     const page = await context.newPage();
     await page.goto(base, { waitUntil: "networkidle" });
     await page.getByRole("link", { name: /I have a breast concern/ }).click();
-    await page.getByRole("heading", { name: "Questionnaire content is being prepared" }).waitFor();
-    record("concern: honest pending state", true);
-    record("concern: exact disclaimer", await page.getByText(DISCLAIMER, { exact: true }).filter({ visible: true }).first().isVisible());
-    record("concern: telemedicine unavailable stated", await page.getByText("Online consultations are not available through EarlyHer yet.").isVisible());
-    record("concern: no invented provider link", (await page.locator('a[target="_blank"]').count()) === 0);
-    await page.getByRole("link", { name: "Find a facility" }).click();
-    await page.waitForURL(/\/healthcare/);
-    record("concern: facility option opens finder", true);
-    await page.goBack();
-    await page.getByRole("link", { name: "Back" }).click();
+    await page.getByRole("heading", { name: "Let's check your breast concern together" }).waitFor();
+    record("concern: welcome and consent", await page.getByText(/By continuing, you agree that EarlyHer can use your answers/).isVisible());
+    record("concern: emergency banner", await page.getByText("Chest pain or trouble breathing? Call your local emergency number now.").isVisible());
+    record("concern: privacy link", await page.getByRole("link", { name: "Read how EarlyHer handles your answers" }).isVisible());
+    record("concern: no identity questions", !(await page.locator("input[type=text], input[type=email], input[type=tel]").count()));
+    await page.getByRole("navigation", { name: "Page navigation" }).getByRole("link", { name: "Back" }).click();
     await page.waitForURL(base + "/");
     record("concern: Back returns home", true);
 
     await page.getByRole("link", { name: /I don't have a concern/ }).click();
-    await page.getByRole("heading", { name: "This section is being prepared" }).waitFor();
-    record("no-concern: honest pending state", true);
+    await page.getByRole("heading", { name: "Let's do a breast check-in together" }).waitFor();
+    record("no-concern: welcome and consent", true);
     await page.getByRole("navigation", { name: "Page navigation" }).getByRole("link", { name: "Home" }).click();
     await page.waitForURL(base + "/");
     record("no-concern: Home returns home", true);
+    await context.close();
+  }
 
-    await page.goto(base + "/next-step", { waitUntil: "networkidle" });
-    record("results without answers shows no result", await page.getByRole("heading", { name: "There are no next steps to show" }).isVisible());
+  // 4a. Journeys through the questions to results, summary and care.
+  await checkTriage(browser, { base, outDir, record, newContext, overflow });
+
+  // 4b. Disclaimer and care options on a result.
+  {
+    const context = await newContext(browser, { viewport: { width: 390, height: 844 } });
+    const page = await context.newPage();
+    await page.goto(base + "/no-concern", { waitUntil: "networkidle" });
+    await page.getByRole("button", { name: "I agree and start" }).click();
+    for (const [question, option] of [
+      ["How old are you?", "Under 25"],
+      ["Do you check your breasts yourself?", "Every month"],
+      ["Do you see any change in your breasts?", "No, everything looks normal"],
+      ["Do you feel any lump or thick area?", "No, nothing feels different"],
+      ["When did a health worker last examine your breasts?", "In the last year"],
+    ]) {
+      await page.getByRole("heading", { level: 1, name: question }).waitFor();
+      await page.getByText(option, { exact: true }).click();
+    }
+    await page.getByRole("heading", { level: 1, name: "No urgent concern" }).waitFor();
+    record("result: exact disclaimer", await page.getByText(DISCLAIMER, { exact: true }).filter({ visible: true }).first().isVisible());
+    record("result: telemedicine unavailable stated", await page.getByText("Online consultations are not available through EarlyHer yet.").isVisible());
+    record("result: no invented provider link", (await page.locator('a[target="_blank"]').count()) === 0);
+    await page.getByRole("link", { name: "Find a facility" }).click();
+    await page.waitForURL(/\/healthcare/);
+    record("result: facility option opens finder", true);
     await context.close();
   }
 
@@ -252,77 +275,10 @@ try {
     await context.close();
   }
 
-  // 6. Questionnaire behaviour, using the labelled development fixture.
+  // 6. Demo states for the facility finder (development panel).
   if (checkFixtures) {
     const context = await newContext(browser, { viewport: { width: 390, height: 844 } });
     const page = await context.newPage();
-    await page.goto(base + "/concern", { waitUntil: "networkidle" });
-    await page.getByRole("button", { name: /Interface test \(not clinical\)/ }).click();
-    await page.getByRole("heading", { name: /Test question 1/ }).waitFor();
-    record("fixture is labelled as not clinical", await page.getByText(/Development fixture/).isVisible());
-    record("disclaimer beneath questions", await page.getByText(DISCLAIMER, { exact: true }).filter({ visible: true }).first().isVisible());
-
-    await page.getByRole("button", { name: "Next" }).click();
-    record("required answer enforced", await page.getByRole("alert").getByText("Please choose an answer to continue.").isVisible());
-
-    await page.getByText("Yes", { exact: true }).click();
-    await page.getByRole("button", { name: "Next" }).click();
-    await page.getByRole("heading", { name: /Test follow-up/ }).waitFor();
-    record("conditional follow-up appears after Yes", true);
-    await page.getByText("Option two", { exact: true }).click();
-    await page.getByRole("button", { name: "Back" }).last().click();
-    record("Back keeps the earlier answer", await page.getByRole("radio", { name: "Yes" }).isChecked());
-
-    await page.getByText("No", { exact: true }).click();
-    await page.getByRole("button", { name: "Next" }).click();
-    await page.getByRole("heading", { name: /Test question 2/ }).waitFor();
-    record("follow-up skipped after No", true);
-    await page.getByText("Option A", { exact: true }).click();
-    await page.getByText("Option B", { exact: true }).click();
-    record("several answers can be chosen", (await page.getByRole("checkbox", { checked: true }).count()) === 2);
-    await page.getByText("None of these", { exact: true }).click();
-    record("exclusive option clears the others", (await page.getByRole("checkbox", { checked: true }).count()) === 1);
-    await page.getByText("Option B", { exact: true }).click();
-    await page.getByRole("button", { name: "Next" }).click();
-    await page.getByRole("heading", { name: /Optional test follow-up/ }).waitFor();
-    await page.getByRole("button", { name: "Next" }).click();
-    record("optional question can be skipped", await page.getByRole("heading", { name: /Test question 3/ }).isVisible());
-    await page.getByText("Yes", { exact: true }).click();
-    await page.getByRole("button", { name: "Next" }).click();
-    await page.getByRole("heading", { name: "Check your answers" }).waitFor();
-    record("review step shown", true);
-    record("review lists answers", await page.getByText("Option B", { exact: true }).isVisible());
-    await page.screenshot({ path: `${outDir}/390x844_review.png`, fullPage: true, timeout: 120000 });
-
-    await page.getByRole("button", { name: /Change: Test question 1/ }).click();
-    await page.getByText("Yes", { exact: true }).click();
-    await page.getByRole("button", { name: "Next" }).click();
-    await page.getByRole("heading", { name: /Test follow-up/ }).waitFor();
-    record("previously cleared follow-up is asked again, empty", !(await page.getByRole("radio", { checked: true }).count()));
-    await page.getByText("Option one", { exact: true }).click();
-    await page.getByRole("button", { name: "Back to check your answers" }).click();
-    await page.getByRole("heading", { name: "Check your answers" }).waitFor();
-    record("edit from review can return straight to review", true);
-    await page.getByRole("button", { name: "See my next steps" }).click();
-    await page.getByRole("heading", { name: "Your next steps" }).waitFor();
-    record("result shown from declared fixture rules", await page.getByText("Test result A").isVisible());
-    record("result fixture labelled", await page.getByText("Development fixture result. Not clinical guidance.").isVisible());
-    record("result offers telemedicine and facility", await page.getByRole("link", { name: "Find a facility" }).isVisible());
-    record("result disclaimer", await page.getByText(DISCLAIMER, { exact: true }).filter({ visible: true }).first().isVisible());
-    await page.screenshot({ path: `${outDir}/390x844_result.png`, fullPage: true, timeout: 120000 });
-
-    await page.getByRole("button", { name: "Back to my answers" }).click();
-    await page.getByRole("heading", { name: "Check your answers" }).waitFor();
-    record("results Back returns to review with answers", await page.getByText("Option one", { exact: true }).isVisible());
-
-    record("answers not written to storage", (await page.evaluate(() => JSON.stringify({ ...localStorage, ...sessionStorage }))).includes("Option") === false);
-    await page.getByRole("button", { name: "Finish" }).click();
-    await page.getByRole("button", { name: "Yes, finish" }).click();
-    await page.waitForURL(base + "/");
-    await page.goto(base + "/next-step", { waitUntil: "networkidle" });
-    record("finish clears answers", await page.getByRole("heading", { name: "There are no next steps to show" }).isVisible());
-
-    // Demo states for the facility finder (development panel).
     await page.goto(base + "/healthcare", { waitUntil: "networkidle" });
     await page.getByRole("button", { name: /Demo states/ }).click();
     for (const [state, text] of [
@@ -353,9 +309,13 @@ try {
     await fresh.goto(base, { waitUntil: "domcontentloaded" });
     record("home loads offline", await fresh.getByRole("heading", { name: "Where would you like to start?" }).isVisible());
     await fresh.getByRole("link", { name: /I have a breast concern/ }).click();
-    await fresh.getByRole("heading", { name: "Questionnaire content is being prepared" }).waitFor();
+    await fresh.getByRole("heading", { name: "Let's check your breast concern together" }).waitFor();
     record("concern screen works offline", true);
-    await fresh.getByRole("link", { name: "Find a facility" }).click();
+    await fresh.getByRole("button", { name: "I agree and start" }).click();
+    await fresh.getByRole("heading", { level: 1, name: "What brings you here today?" }).waitFor();
+    record("questions work offline", true);
+    await fresh.getByRole("button", { name: "I need help now" }).click();
+    await fresh.getByRole("dialog").getByRole("link", { name: "Find care near me now" }).click();
     await fresh.getByText(/2,798 facilities/).waitFor({ timeout: 20000 });
     record("cached facility list works offline", true);
     record("map says it needs internet", await fresh.getByText("The map needs an internet connection").isVisible());

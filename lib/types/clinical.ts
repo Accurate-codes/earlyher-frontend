@@ -1,6 +1,6 @@
 /**
  * Content model for clinical material. The clinical team owns recommendations and
- * educational text; the questionnaire model is in questionnaire.ts.
+ * educational text; the triage model is in lib/triage.
  */
 
 /** Every piece of clinical content carries its review status so drafts are never shown as approved. */

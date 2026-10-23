@@ -10,6 +10,8 @@ const CORE_ROUTES = [
   "/concern",
   "/next-step",
   "/no-concern",
+  "/summary",
+  "/privacy",
   "/learn",
   "/healthcare",
   ...educationModules.map((module) => `/learn/${module.slug}`),

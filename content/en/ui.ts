@@ -64,48 +64,10 @@ export const ui = {
 
   questionnaire: {
     title: "Your breast concern",
-    pendingTitle: "Questionnaire content is being prepared",
-    pendingText:
-      "The questions for this part of EarlyHer are being prepared and reviewed by our clinical lead. They are not available yet.",
-    pendingNext: "You can still talk to a healthcare professional:",
-    devFixture: "Interface test (not clinical)",
-    devFixtureHelp: "Development only. Placeholder questions that test the questionnaire.",
-    fixtureNotice: "Development fixture. These are not health questions and the result is not clinical.",
-    draftNotice: "These questions have not been approved for public use.",
-    questionOf: (position: number, total: number) => `Question ${position} of ${total}`,
-    questionOpen: (position: number) => `Question ${position}`,
-    moreMayFollow: "More questions may follow, depending on your answers.",
-    yes: "Yes",
-    no: "No",
-    unsure: "I don't know",
-    chooseAll: "Choose all that apply.",
-    optional: "Optional",
-    required: "Please choose an answer to continue.",
-    requiredMultiple: "Please choose at least one answer to continue.",
-    clear: "Clear answer",
-    review: "Check your answers",
-    reviewText: "Look over your answers. You can change any of them before you continue.",
-    notAnswered: "Not answered",
-    change: "Change",
-    changeLabel: (prompt: string) => `Change: ${prompt}`,
-    submit: "See my next steps",
-    backToReview: "Back to check your answers",
-    incomplete: "Some questions still need an answer.",
-    goToQuestion: "Go to the question",
-    noSession: {
-      title: "Let's start again",
-      text: "There are no answers here. For your privacy, answers are cleared when a session ends or the page is reloaded.",
-    },
   },
 
   results: {
     title: "Your next steps",
-    urgencyHeading: "How soon to seek care",
-    urgencyPending:
-      "EarlyHer cannot yet tell you how soon to seek care. This part is waiting for approved guidance from our clinical lead.",
-    urgencyPendingNext: "You can still talk to a healthcare professional using the options below.",
-    fixtureResult: "Development fixture result. Not clinical guidance.",
-    optionsHeading: "Talk to a healthcare professional",
     telemedicine: {
       title: "Talk to a doctor online",
       text: (provider: string) => `Talk to a doctor through ${provider}, a separate telemedicine service.`,
@@ -118,19 +80,10 @@ export const ui = {
       text: "Find health facilities on a map and get directions.",
       open: "Find a facility",
     },
-    backToAnswers: "Back to my answers",
-    noResult: {
-      title: "There are no next steps to show",
-      text: "For your privacy, answers are cleared when a session ends or the page is reloaded. You can start again whenever you are ready.",
-    },
   },
 
   noConcern: {
     title: "I don't have a concern",
-    pendingTitle: "This section is being prepared",
-    pendingText:
-      "Information for people without a breast concern is being prepared and reviewed by our clinical lead. It is not available yet.",
-    otherOptions: "In the meantime you can:",
   },
 
   finder: {
@@ -286,7 +239,7 @@ export const ui = {
 
   session: {
     exitTitle: "Finish and clear your answers?",
-    exitText: "Your answers and any phone number or recording will be removed from this device.",
+    exitText: "Your answers, including any progress saved on this device, will be removed.",
     exitConfirm: "Yes, finish",
     exitStay: "No, go back",
     idleTitle: "Are you still there?",

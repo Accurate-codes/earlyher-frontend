@@ -1,5 +1,5 @@
 import type { ClinicalReview } from "@/lib/types/clinical";
-import type { Locale, LocalizedText } from "@/lib/types/questionnaire";
+import type { Locale, LocalizedText } from "@/lib/types/locale";
 
 /** Pure translation helpers: merging a partial table over English and finding gaps. */
 

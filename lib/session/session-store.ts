@@ -1,23 +1,16 @@
-import type { AnswerValue } from "@/lib/types/questionnaire";
+import type { TriageState } from "@/lib/triage/flow";
 
 /**
- * Temporary, in-memory session. Nothing here is written to localStorage, IndexedDB,
- * cookies or the URL, so a page refresh or a reset leaves no trace of the previous person.
+ * Temporary, in-memory session. Nothing here is written to cookies or the URL. The
+ * triage answers are copied to localStorage only when the person turns on "Save my
+ * progress on this device" (lib/triage/persistence.ts), and that copy is deleted on reset.
  */
-
-/** Where the person is in the questionnaire: a question id, or the review step. */
-export type QuestionnaireStep = { questionId: string } | { review: true };
 
 export interface SessionState {
   /** Increases on every reset. Work started in an earlier epoch must not write to the session. */
   epoch: number;
-  /** Questionnaire being answered. */
-  questionnaireId: string | null;
-  /** Answers to the questionnaire. Held in memory only; never stored, sent or logged. */
-  answers: Record<string, AnswerValue>;
-  step: QuestionnaireStep | null;
-  /** True once the person has confirmed their answers on the review step. */
-  submitted: boolean;
+  /** The breast-concern or self-check journey in progress. Never sent or logged. */
+  triage: TriageState | null;
   /** Digits typed for the optional SMS. Cleared on reset. */
   phoneDigits: string;
   /** True when the person arrived at education by saying they have no concern. */
@@ -39,10 +32,7 @@ type Cleanup = () => void;
 function initialState(epoch: number): SessionState {
   return {
     epoch,
-    questionnaireId: null,
-    answers: {},
-    step: null,
-    submitted: false,
+    triage: null,
     phoneDigits: "",
     arrivedWithoutConcern: false,
   };
@@ -114,8 +104,7 @@ export function createSessionStore() {
     /** True when the session holds anything belonging to a person. */
     hasData(): boolean {
       return (
-        state.questionnaireId !== null ||
-        Object.keys(state.answers).length > 0 ||
+        state.triage !== null ||
         state.phoneDigits !== "" ||
         state.arrivedWithoutConcern
       );

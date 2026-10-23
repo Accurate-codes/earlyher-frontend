@@ -53,6 +53,24 @@ export const appConfig = {
     : null,
 
   /**
+   * Local emergency number shown as a call link in urgent guidance. Leave empty until
+   * the number for the deployment area has been verified; the app then says "your
+   * local emergency number" without naming one.
+   */
+  emergencyNumber: phoneNumber(process.env.NEXT_PUBLIC_EMERGENCY_NUMBER),
+
+  /**
+   * Published privacy policy. Until one is set, the consent screen links to the in-app
+   * page describing how answers are handled (/privacy).
+   */
+  privacyPolicyUrl: httpsUrl(process.env.NEXT_PUBLIC_PRIVACY_POLICY_URL) ?? "/privacy",
+
+  /**
+   * "off" hides "Save my progress on this device". Recommended for shared kiosks.
+   */
+  allowDeviceSave: process.env.NEXT_PUBLIC_DEVICE_SAVE !== "off",
+
+  /**
    * Map tiles. The default is the OpenStreetMap Foundation's standard tile server, which
    * allows light use with visible attribution and no bulk or offline caching, and offers
    * no service guarantee. Set a contracted provider for production kiosks.
@@ -65,6 +83,11 @@ export const appConfig = {
     maxZoom: 19,
   },
 };
+
+function phoneNumber(value: string | undefined): string | null {
+  const trimmed = value?.trim() ?? "";
+  return /^\+?[0-9]{2,15}$/.test(trimmed) ? trimmed : null;
+}
 
 function httpsUrl(value: string | undefined): string | null {
   if (!value) return null;

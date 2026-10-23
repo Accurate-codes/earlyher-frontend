@@ -20,6 +20,7 @@ import { audioController } from "@/lib/audio/audio-controller";
 import { appConfig } from "@/lib/config";
 import { useSession } from "@/lib/hooks";
 import { sessionStore } from "@/lib/session/session-store";
+import { clearProgress, deviceStorage } from "@/lib/triage/persistence";
 
 interface SessionControls {
   /** Asks for confirmation, then ends the session. */
@@ -58,7 +59,7 @@ function InactivityGuard({ onTimeout }: { onTimeout: () => void }) {
 
   const watching = pathname !== "/" || sessionStore.hasData();
   // Navigating or changing the session counts as activity.
-  const activityKey = `${pathname}:${session.epoch}:${Object.keys(session.answers).length}`;
+  const activityKey = `${pathname}:${session.epoch}:${session.triage?.cursor}:${Object.keys(session.triage?.answers ?? {}).length}`;
 
   useEffect(() => {
     if (!watching) return;
@@ -126,6 +127,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const endSession = useCallback(() => {
     setConfirming(false);
     audioController.stop();
+    // Finish and the inactivity timeout also delete any progress saved on this device.
+    clearProgress(deviceStorage());
     sessionStore.reset();
     // replace() so the screen being left is not the entry Back returns to.
     router.replace("/");

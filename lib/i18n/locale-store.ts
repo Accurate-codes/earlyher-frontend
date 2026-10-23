@@ -1,4 +1,4 @@
-import type { Locale } from "@/lib/types/questionnaire";
+import type { Locale } from "@/lib/types/locale";
 import { DEFAULT_LOCALE, isLocale } from "./translate";
 
 /**

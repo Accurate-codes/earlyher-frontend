@@ -23,6 +23,8 @@ const PRECACHE_PAGES = [
   "/concern",
   "/next-step",
   "/no-concern",
+  "/summary",
+  "/privacy",
   "/learn",
   "/learn/know-your-breasts",
   "/learn/changes-to-look-out-for",
