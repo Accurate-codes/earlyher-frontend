@@ -1,7 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { ListenButton } from "@/components/audio/listen-button";
 import { PageShell } from "@/components/layout/page-shell";
+import { privacySpeech } from "@/lib/audio/page-speech";
 import { TriageTopBar } from "@/components/triage/triage-flow";
 import { useTriageText } from "@/lib/hooks";
 
@@ -18,6 +20,7 @@ export function PrivacyView() {
           {t.title}
         </h1>
         <p className="text-lg leading-relaxed text-ink-soft">{t.intro}</p>
+        <ListenButton id="privacy" className="items-start" ids={privacySpeech(t.points.length)} />
       </div>
       <ul className="flex list-disc flex-col gap-3 rounded-3xl border border-line bg-white p-5 pl-10 text-lg leading-relaxed shadow-soft sm:p-7 sm:pl-12">
         {t.points.map((point) => (

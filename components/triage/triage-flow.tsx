@@ -7,6 +7,7 @@ import { ListenButton } from "@/components/audio/listen-button";
 import { PageShell } from "@/components/layout/page-shell";
 import { Button, ButtonLink, buttonClass } from "@/components/ui/button";
 import { ArrowLeft, HomeIcon, Info, Lock } from "@/components/ui/icons";
+import { RESULT_READY_SPEECH } from "@/lib/audio/page-speech";
 import { appConfig } from "@/lib/config";
 import { useSession, useTriageText, useUi } from "@/lib/hooks";
 import { commitTriage, triageFor, updateTriage } from "@/lib/session/actions";
@@ -139,6 +140,7 @@ function WelcomeScreen({ entry }: { entry: Entry }) {
         <p className="max-w-[46ch] text-pretty text-lg leading-relaxed text-ink-soft">{t.body}</p>
         <ListenButton
           id={`welcome-${entry}`}
+          readAlong
           ids={[
             entry === "concern" ? "triage.welcome.concernTitle" : "triage.welcome.noConcernTitle",
             "triage.welcome.body",
@@ -180,7 +182,7 @@ function DeferredScreen({ state }: { state: TriageState }) {
           {t.deferredTitle}
         </h1>
         <p className="max-w-[46ch] text-pretty text-lg leading-relaxed text-ink-soft">{t.deferredText}</p>
-        <ListenButton id="self-check-later" ids={["triage.selfCheck.deferredTitle", "triage.selfCheck.deferredText"]} />
+        <ListenButton id="self-check-later" readAlong ids={["triage.selfCheck.deferredTitle", "triage.selfCheck.deferredText"]} />
       </section>
       <div className="flex flex-col gap-3 rounded-3xl border border-line bg-white p-5 shadow-soft">
         <ReminderButton kind="tomorrow" label={t.reminderTomorrow} />
@@ -209,6 +211,7 @@ function ResultReady({ state }: { state: TriageState }) {
         <h1 className="text-balance text-[clamp(1.75rem,1.2rem+2.6vw,2.6rem)] font-bold leading-[1.12] tracking-tight">
           {text.results.ready}
         </h1>
+        <ListenButton id="result-ready" readAlong ids={RESULT_READY_SPEECH} />
         <ButtonLink href="/next-step" size="lg">
           {text.results.title}
         </ButtonLink>

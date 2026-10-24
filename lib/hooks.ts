@@ -72,6 +72,11 @@ export function useTriageText(): { text: TriageText; lang: Locale } {
   return { text: contentFor(locale).triage, lang: locale };
 }
 
+/** Whether Listen reads each new step of the check as it appears. */
+export function useReadAlong(): boolean {
+  return useSyncExternalStore(audioController.subscribe, audioController.getFollowing, audioController.getServerFollowing);
+}
+
 /** What audio this device and server can offer (voices, generated speech). */
 export function useAudioSupport() {
   return useSyncExternalStore(audioController.subscribe, audioController.getSupport, audioController.getServerSupport);

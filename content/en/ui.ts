@@ -51,6 +51,7 @@ export const ui = {
     deviceVoice: "Playing with this device's voice.",
     generated: "This voice is computer-generated (AI).",
     unavailable: "Audio is not available for this screen yet.",
+    readAlong: "Each new step will be read aloud. Tap the speaker while it reads to stop.",
     errors: {
       network: "The audio couldn't load. Check the internet connection and try again.",
       busy: "Audio is busy right now. Please try again in a minute.",

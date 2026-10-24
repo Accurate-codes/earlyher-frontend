@@ -77,7 +77,9 @@ export function allSpeechIds(locale: Locale): string[] {
     } else if (typeof node === "object" && node !== null) {
       for (const [key, value] of Object.entries(node)) {
         // Staff-only text and non-content fields (ids, slugs, file names) are not read aloud.
-        if (["dev", "id", "slug", "icon", "review", "fileName", "logoAlt", "appName"].includes(key)) continue;
+        if (["dev", "id", "slug", "icon", "fileName", "logoAlt", "appName"].includes(key)) continue;
+        // Review records (status, reviewer), but not the "review" result outcome.
+        if (key === "review" && typeof value === "object" && value !== null && "status" in value) continue;
         walk(value, path ? `${path}.${key}` : key);
       }
     }

@@ -61,6 +61,7 @@ export const uiYo: TranslationTable<UiText> = {
     deviceVoice: "Ohùn ẹ̀rọ yìí ló ń kà á.",
     generated: "Kọ̀ǹpútà (AI) ló ṣẹ̀dá ohùn yìí.",
     unavailable: "Ohùn Yorùbá kò tíì sí fún ojú-ìwé yìí. Gbogbo ọ̀rọ̀ wà lójú ìwé.",
+    readAlong: "A ó máa ka ìgbésẹ̀ tuntun kọ̀ọ̀kan sókè. Ẹ tẹ àmì ohùn nígbà tí ó bá ń kà á láti dá a dúró.",
     errors: {
       network: "Ohùn náà kò lè dé. Ẹ ṣàyẹ̀wò ìsopọ̀ íntánẹ́ẹ̀tì, kí ẹ sì gbìyànjú lẹ́ẹ̀kan sí i.",
       busy: "Ohùn ń ṣiṣẹ́ lọ́wọ́ báyìí. Ẹ jọ̀wọ́ ẹ gbìyànjú lẹ́yìn ìṣẹ́jú kan.",

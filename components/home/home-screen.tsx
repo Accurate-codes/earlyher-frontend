@@ -28,7 +28,7 @@ export function HomeScreen() {
           {home.title}
         </h1>
         <p className="max-w-[44ch] text-pretty text-lg leading-relaxed text-ink-soft">{home.text}</p>
-        <ListenButton id="welcome" ids={HOME_SPEECH} />
+        <ListenButton id="welcome" ids={HOME_SPEECH} readAlong />
       </div>
 
       <JourneyChoices />

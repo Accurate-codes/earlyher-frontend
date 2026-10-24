@@ -19,6 +19,11 @@ import { speechText } from "./speech-catalog";
  * part of the screen or the wrong language.
  *
  * Playback stops when the screen, question or language changes, and when the session ends.
+ *
+ * Read along: pressing Listen on a step of the check turns on reading each new step as it
+ * appears, so the person does not have to press Listen on every question. Nothing plays
+ * until they press Listen once. It turns off when they stop the audio, change language,
+ * leave the check or the session ends.
  */
 
 export type Source = "recording" | "generated" | "device";
@@ -67,6 +72,7 @@ const idle: AudioState = { controlId: null, status: "idle", canPause: false, gen
 const initialSupport: Support = { generated: null, generatedCheck: "pending", deviceLanguages: [] };
 
 let state: AudioState = idle;
+let following = false;
 let support: Support = initialSupport;
 const listeners = new Set<() => void>();
 
@@ -114,7 +120,7 @@ function start() {
   refreshVoices();
   if ("speechSynthesis" in window) window.speechSynthesis.addEventListener?.("voiceschanged", refreshVoices);
   // Changing language stops whatever is playing.
-  localeStore.subscribe(() => audioController.stop());
+  localeStore.subscribe(() => audioController.stopReading());
   void checkGenerated();
 }
 
@@ -310,6 +316,16 @@ export const audioController = {
     };
   },
 
+  /** Whether each new step of the check is read as it appears. */
+  getFollowing: (): boolean => following,
+  getServerFollowing: (): boolean => false,
+
+  setFollowing(on: boolean) {
+    if (following === on) return;
+    following = on;
+    emit();
+  },
+
   play(controlId: string, locale: Locale, ids: string[]) {
     silence();
     const mine = token;
@@ -344,6 +360,12 @@ export const audioController = {
     if (state !== idle) setState(idle);
   },
 
+  /** The person stopped the audio, or changed language: stop, and stop reading each new step. */
+  stopReading() {
+    this.setFollowing(false);
+    this.stop();
+  },
+
   /** Stops only if this control is the one playing; used when a control leaves the screen. */
   release(controlId: string) {
     if (state.controlId === controlId) this.stop();
@@ -351,7 +373,7 @@ export const audioController = {
 
   /** Ends the session: stops playback and forgets fetched clips. */
   reset() {
-    this.stop();
+    this.stopReading();
     for (const url of clips.values()) URL.revokeObjectURL(url);
     clips.clear();
   },

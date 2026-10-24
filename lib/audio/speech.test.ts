@@ -1,7 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { triageText } from "@/content/en/triage";
 import { QUESTION_IDS, questionShape } from "@/lib/triage/questions";
-import { availabilityOf, planSegments, type Support } from "./audio-controller";
+import type { Evaluation } from "@/lib/triage/rules";
+import { readAloudIds } from "../../scripts/read-aloud.mjs";
+import { audioController, availabilityOf, planSegments, type Support } from "./audio-controller";
+import { finderSpeech, NO_RESULT_SPEECH, privacySpeech, RESULT_READY_SPEECH, resultSpeech, summarySpeech } from "./page-speech";
 import { allSpeechIds, speechText, textVersion } from "./speech-catalog";
 
 const noRecordings = { en: {}, yo: {} };
@@ -81,6 +84,61 @@ describe("choosing an audio source", () => {
 
   it("does not play part of a screen: one unreadable id makes the control unavailable", () => {
     expect(availabilityOf("en", [...ids, "triage.questions.ZZ.prompt"], { ...nothing, deviceLanguages: ["en"] }, noRecordings)).toBe("unavailable");
+  });
+});
+
+describe("what each screen reads", () => {
+  const reasonKeys = Object.keys(triageText.results.reasons);
+  const adviceKeys = Object.keys(triageText.results.advice);
+  const outcomes = ["red", "orange", "yellow", "green", "review"] as const;
+  const evaluation = (outcome: (typeof outcomes)[number]) =>
+    ({ outcome, reasons: reasonKeys, advice: adviceKeys }) as unknown as Evaluation;
+
+  it("has every piece of every screen in both languages, so Listen is never partly English", () => {
+    for (const locale of ["en", "yo"] as const) {
+      const lists = [
+        RESULT_READY_SPEECH,
+        NO_RESULT_SPEECH,
+        privacySpeech(triageText.privacy.points.length),
+        finderSpeech(null),
+        ...outcomes.flatMap((outcome) => [
+          resultSpeech(evaluation(outcome), reasonKeys, true, triageText.results.bring.length),
+          summarySpeech(evaluation(outcome), true),
+          finderSpeech(evaluation(outcome)),
+        ]),
+      ];
+      for (const ids of lists) for (const id of ids) expect(speechText(locale, id), `${locale} ${id}`).not.toBeNull();
+      // Recording lists and cache warming (scripts/read-aloud.mjs) cover everything these screens read.
+      const covered = new Set(readAloudIds(allSpeechIds(locale)));
+      for (const ids of lists) for (const id of ids) expect(covered.has(id), `not in read-aloud list: ${id}`).toBe(true);
+    }
+  });
+
+  it("reads the result in the order it is shown", () => {
+    const ids = resultSpeech(evaluation("red"), ["lump"], false, 3);
+    expect(ids.slice(0, 5)).toEqual([
+      "triage.results.howSoon",
+      "triage.results.outcomes.red.label",
+      "triage.results.outcomes.red.timeframe",
+      "triage.results.outcomes.red.headline",
+      "triage.results.outcomes.red.body",
+    ]);
+    expect(ids.indexOf("triage.results.nextHeading")).toBeLessThan(ids.indexOf("triage.results.reasonsHeading"));
+    expect(ids.at(-1)).toBe("safety.text");
+    expect(resultSpeech(evaluation("green"), [], false, 3)).not.toContain("triage.results.bringHeading");
+  });
+});
+
+describe("reading along", () => {
+  it("is turned off by stopping, and by the end of the session", () => {
+    audioController.setFollowing(true);
+    audioController.stop();
+    expect(audioController.getFollowing()).toBe(true);
+    audioController.stopReading();
+    expect(audioController.getFollowing()).toBe(false);
+    audioController.setFollowing(true);
+    audioController.reset();
+    expect(audioController.getFollowing()).toBe(false);
   });
 });
 

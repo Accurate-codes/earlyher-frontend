@@ -68,6 +68,7 @@ These are the choices most likely to change the meaning or to read unnaturally.
 - Numbers are written as digits (ọdún 25 sí 39, ọ̀sẹ̀ 4) so ages and timeframes are easy to read.
 - Some English terms are kept in brackets where patients may know only the English word.
 - "Listen" is "Tẹ́tí sílẹ̀"; "Finish" is "Parí"; "Back" is "Padà sẹ́yìn".
+- Added 2026-10-24, AI-drafted: `ui.audio.readAlong`, "Each new step will be read aloud. Tap the speaker while it reads to stop." → "A ó máa ka ìgbésẹ̀ tuntun kọ̀ọ̀kan sókè. Ẹ tẹ àmì ohùn nígbà tí ó bá ń kà á láti dá a dúró." Check that "àmì ohùn" reads as "the speaker button".
 
 ### Things that stay in English on purpose
 

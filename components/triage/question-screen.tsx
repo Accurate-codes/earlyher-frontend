@@ -227,7 +227,7 @@ export function QuestionScreen({ screen, answers, error, headingRef, onAnswer, o
         onAnswer={onAnswer}
         headingRef={headingRef}
         helper={extraHelper}
-        listen={<ListenButton key={screen} id={`question-${screen}`} ids={speech} />}
+        listen={<ListenButton key={screen} id={`question-${screen}`} ids={speech} readAlong />}
       />
       <Illustration screen={screen} answers={answers} onAnswer={(value) => onAnswer(screen, value, false)} />
       {followUps.map((id) => (

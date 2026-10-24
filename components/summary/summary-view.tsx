@@ -2,12 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
+import { ListenButton } from "@/components/audio/listen-button";
 import { PageShell } from "@/components/layout/page-shell";
 import { NoResult, OUTCOME_STYLE, useTriageResult } from "@/components/results/results-view";
 import { GuidanceFooter } from "@/components/triage/care-actions";
 import { TriageTopBar } from "@/components/triage/triage-flow";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Notice } from "@/components/ui/notice";
+import { summarySpeech } from "@/lib/audio/page-speech";
 import { downloadFile } from "@/lib/download";
 import { triageText } from "@/content/en/triage";
 import { useTriageText } from "@/lib/hooks";
@@ -76,6 +78,7 @@ export function SummaryView() {
       <div className="flex flex-col items-center gap-3 text-center">
         <h1 className="text-balance text-[clamp(1.75rem,1.2rem+2.6vw,2.75rem)] font-bold leading-[1.12] tracking-tight">{t.title}</h1>
         <p className="max-w-[46ch] text-pretty text-lg leading-relaxed text-ink-soft">{t.intro}</p>
+        <ListenButton id={`summary-${summary.outcome}`} ids={summarySpeech(result.evaluation, summary.incomplete)} />
       </div>
 
       <section aria-labelledby="summary-guidance" className={`flex flex-col gap-2 rounded-3xl border-2 p-5 sm:p-6 ${style.card}`}>

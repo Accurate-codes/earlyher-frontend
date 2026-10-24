@@ -38,10 +38,16 @@ export function useSessionControls(): SessionControls {
 
 const ACTIVITY_EVENTS = ["pointerdown", "keydown", "wheel", "touchstart"] as const;
 
-/** Stops audio whenever the route changes. */
+/** Screens where Listen, once pressed, keeps reading each new step: the start screen, the check and its result. */
+const READ_ALONG_ROUTES = ["/", "/concern", "/no-concern", "/next-step"];
+
+/** Stops audio whenever the route changes, and stops reading along outside the check. */
 function StopAudioOnNavigation() {
   const pathname = usePathname();
-  useEffect(() => () => audioController.stop(), [pathname]);
+  useEffect(() => {
+    if (!READ_ALONG_ROUTES.includes(pathname)) audioController.setFollowing(false);
+    return () => audioController.stop();
+  }, [pathname]);
   return null;
 }
 

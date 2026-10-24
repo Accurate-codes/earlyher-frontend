@@ -1,6 +1,7 @@
 "use client";
 
 import { ListenButton } from "@/components/audio/listen-button";
+import { NO_RESULT_SPEECH, resultSpeech } from "@/lib/audio/page-speech";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { CareOptions } from "@/components/clinical/care-options";
@@ -47,6 +48,7 @@ export function NoResult() {
           {text.results.noResult.title}
         </h1>
         <p className="max-w-[46ch] text-pretty text-lg leading-relaxed text-ink-soft">{text.results.noResult.text}</p>
+        <ListenButton id="no-result" ids={NO_RESULT_SPEECH} />
       </div>
       <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
         <ButtonLink href="/concern" size="lg">
@@ -141,14 +143,8 @@ export function ResultsView() {
         <ListenButton
           id={`result-${evaluation.outcome}`}
           className="items-start"
-          ids={[
-            `triage.results.outcomes.${evaluation.outcome}.headline`,
-            `triage.results.outcomes.${evaluation.outcome}.timeframe`,
-            `triage.results.outcomes.${evaluation.outcome}.body`,
-            "triage.results.reasonsHeading",
-            ...reasons.map((key) => `triage.results.reasons.${key}`),
-            ...evaluation.advice.map((key) => `triage.results.advice.${key}`),
-          ]}
+          readAlong
+          ids={resultSpeech(evaluation, reasons, incomplete, t.bring.length)}
         />
         {evaluation.outcome === "red" && (
           <div className="w-full rounded-2xl bg-white/70 px-4 py-3 text-base font-semibold">

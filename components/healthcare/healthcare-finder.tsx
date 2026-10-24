@@ -1,11 +1,14 @@
 "use client";
 
 import { useDeferredValue, useMemo, useState } from "react";
+import { ListenButton } from "@/components/audio/listen-button";
 import { FlowNav } from "@/components/layout/flow-nav";
+import { useTriageResult } from "@/components/results/results-view";
 import { Card, PageHeading } from "@/components/layout/page-shell";
 import { Button } from "@/components/ui/button";
 import { Crosshair, Info, Search } from "@/components/ui/icons";
 import { Notice } from "@/components/ui/notice";
+import { finderSpeech } from "@/lib/audio/page-speech";
 import { useMockScenarios, useOnline, useUi } from "@/lib/hooks";
 import { loadFacilities } from "@/lib/facilities/service";
 import { filterFacilities, listLgas, sortFacilities } from "@/lib/facilities/search";
@@ -273,13 +276,16 @@ export function HealthcareFinder() {
   const { ui } = useUi();
   const online = useOnline();
   const scenario = useMockScenarios().facilities;
+  const guidance = useTriageResult()?.evaluation ?? null;
   const [attempt, setAttempt] = useState(0);
   const result = useServiceResult(`facilities:${attempt}:${scenario}:${online}`, (signal) => loadFacilities(signal));
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
       <FlowNav back={{ href: "/" }} />
-      <PageHeading title={ui.finder.title} lead={ui.finder.intro} />
+      <PageHeading title={ui.finder.title} lead={ui.finder.intro}>
+        <ListenButton id={`finder-${guidance?.outcome ?? "none"}`} ids={finderSpeech(guidance)} />
+      </PageHeading>
       <AssessmentContext />
       {result === "loading" || result === null ? (
         <p role="status" className="flex items-center justify-center gap-3 py-10 text-lg font-semibold text-ink-soft">
