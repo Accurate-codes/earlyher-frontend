@@ -6,20 +6,25 @@ import { PageHeading, PageShell } from "@/components/layout/page-shell";
 import { ButtonLink } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "@/components/ui/icons";
 import { ReviewBadge } from "@/components/ui/notice";
-import { educationIntro, educationModules } from "@/content/en/education";
-import { ui } from "@/content/en/ui";
-import { useSession } from "@/lib/hooks";
+import { useContent, useSession } from "@/lib/hooks";
 import { ModuleIcon } from "./module-icon";
 
 export function TopicMenu() {
   const { arrivedWithoutConcern } = useSession();
+  const { ui, education } = useContent();
+  const educationIntro = education.intro;
+  const educationModules = education.modules;
   const greeting = arrivedWithoutConcern ? educationIntro.greeting : undefined;
-  const listenText = `${greeting ?? ""} ${educationIntro.prompt} ${educationModules.map((m) => m.title).join(". ")}.`;
+  const listenIds = [
+    ...(greeting ? ["learn.intro.greeting"] : []),
+    "learn.intro.prompt",
+    ...educationModules.map((module) => `learn.${module.slug}.title`),
+  ];
 
   return (
     <PageShell>
       <PageHeading title={educationIntro.prompt} eyebrow={greeting}>
-        <ListenButton id="learn-menu" text={listenText} audioKey="learn.menu" />
+        <ListenButton id="learn-menu" ids={listenIds} />
       </PageHeading>
 
       <ul className="grid gap-3 sm:grid-cols-2 sm:gap-4">

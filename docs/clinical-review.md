@@ -18,7 +18,7 @@ reviewed the wording in `content/en/triage.ts`, and signed off `TRIAGE_POLICY.re
 | Urgency rules, flags, combinations, reasons, advice | `lib/triage/rules.ts` |
 | Policy switches for unresolved paths | `TRIAGE_POLICY` in `lib/triage/rules.ts` |
 | All user-facing wording (English) | `content/en/triage.ts` |
-| Yoruba wording (empty, gated on review) | `content/yo/triage.ts` |
+| Yoruba wording (AI-assisted draft, shown with a draft notice) | `content/yo/triage.ts` |
 | Tests that pin each rule | `lib/triage/triage.test.ts` |
 
 Each rule records a stable rule id (for example `B3.single-duct`) and, if provisional, a review
@@ -131,8 +131,10 @@ The specification supplied most wording verbatim. The following was written for 
 
 ## Yoruba
 
-No reviewed Yoruba triage text exists and none was drafted, because the wording carries clinical meaning.
-While Yoruba is selected, the triage shows English with the existing visible notice. Both languages use the
-same rules. To add Yoruba, fill `content/yo/triage.ts` (same structure as the English), have it reviewed by a
-fluent reviewer **and** the clinical lead, then set `triageYoReview.status` to `"approved"`. Until then nothing
-in that file is shown.
+At the product owner's request (2026-10-23), every Yoruba text has been drafted with an AI assistant so the
+Yoruba experience works end to end. It is **not clinically approved**: while Yoruba is selected the app shows a
+"draft translation" notice and draft badges. Both languages use the same question ids, answer ids and rules,
+so identical answers give identical results (pinned in `lib/i18n/yoruba.test.ts`). The clinical lead should
+check the meaning of the result wording, timeframes, the disclaimer and the medical terms listed in
+[yoruba-review.md](yoruba-review.md), together with a fluent Yoruba reviewer, then set
+`triageYoReview.status` to `"approved"`.

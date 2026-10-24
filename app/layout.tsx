@@ -8,9 +8,13 @@ import { ui } from "@/content/en/ui";
 import "./globals.css";
 
 // Plus Jakarta Sans (SIL Open Font License), self-hosted so builds and kiosks never
-// depend on reaching Google Fonts. Variable font, weights 200–800, Latin subset.
+// depend on reaching Google Fonts. Variable font, weights 200–800. The subset covers
+// Latin plus the Yoruba letters ẹ, ọ, ṣ, ń and the combining tone marks (U+0300, U+0301,
+// U+0323), with the mark-positioning features kept so tones sit correctly over ẹ and ọ.
+// The font has no precomposed ǹ or ḿ, so Yoruba text writes them as n or m plus a mark
+// (see lib/i18n/yoruba.ts).
 const jakarta = localFont({
-  src: "./fonts/PlusJakartaSans-latin-var.woff2",
+  src: "./fonts/PlusJakartaSans-latin-yoruba-var.woff2",
   variable: "--font-jakarta",
   weight: "200 800",
   display: "swap",

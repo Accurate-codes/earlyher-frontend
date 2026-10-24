@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, type ReactNode, type Ref } from "react";
+import { ListenButton } from "@/components/audio/listen-button";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Check } from "@/components/ui/icons";
 import { useTriageText } from "@/lib/hooks";
@@ -78,13 +79,14 @@ interface QuestionFieldProps {
   onAnswer: (id: QuestionId, value: string | string[] | undefined, fromArrowKey: boolean) => void;
   headingRef?: Ref<HTMLHeadingElement>;
   helper?: ReactNode;
+  listen?: ReactNode;
 }
 
 /**
  * One question as a native fieldset: radio buttons for one answer, checkboxes for
  * several. Native inputs give keyboard and screen-reader support without extra code.
  */
-function QuestionField({ id, value, primary, invalid, onAnswer, headingRef, helper }: QuestionFieldProps) {
+function QuestionField({ id, value, primary, invalid, onAnswer, headingRef, helper, listen }: QuestionFieldProps) {
   const { text, lang } = useTriageText();
   const content = text.questions[id];
   const shape = questionShape(id);
@@ -132,6 +134,7 @@ function QuestionField({ id, value, primary, invalid, onAnswer, headingRef, help
           {multi ? text.nav.chooseAll : text.nav.chooseOne}
           {shape.optional && <span className="font-semibold"> ({text.nav.optional})</span>}
         </p>
+        {listen}
       </div>
 
       <ul className="grid gap-3">
@@ -184,6 +187,13 @@ function QuestionField({ id, value, primary, invalid, onAnswer, headingRef, help
   );
 }
 
+/** Content ids read by Listen for one question: prompt, helper, then each answer. */
+export function questionSpeech(id: QuestionId): string[] {
+  const shape = questionShape(id);
+  const ids = [`triage.questions.${id}.prompt`, `triage.questions.${id}.helper`];
+  return [...ids, ...shape.options.map((option) => `triage.questions.${id}.options.${option}`)];
+}
+
 export interface QuestionScreenProps {
   screen: QuestionId;
   answers: TriageAnswers;
@@ -198,7 +208,14 @@ export function QuestionScreen({ screen, answers, error, headingRef, onAnswer, o
   const [primary, ...followUps] = screenQuestions(screen, answers);
   const values = answers as Record<string, string | string[] | undefined>;
   // A knock can explain soreness; said only when the person reported a recent one.
-  const extraHelper = screen === "C1" && answers.R5 === "recent" ? <p>{text.painInjuryHelper}</p> : undefined;
+  const injuryHelper = screen === "C1" && answers.R5 === "recent";
+  const extraHelper = injuryHelper ? <p>{text.painInjuryHelper}</p> : undefined;
+  const speech = [primary, ...followUps]
+    .flatMap((id) => {
+      const ids = questionSpeech(id);
+      return id === "C1" && injuryHelper ? [...ids.slice(0, 2), "triage.painInjuryHelper", ...ids.slice(2)] : ids;
+    })
+    .filter((id) => !id.endsWith(".helper") || Boolean((text.questions as Record<string, { helper?: string }>)[id.split(".")[2]].helper));
 
   return (
     <div className="flex flex-col gap-6">
@@ -210,6 +227,7 @@ export function QuestionScreen({ screen, answers, error, headingRef, onAnswer, o
         onAnswer={onAnswer}
         headingRef={headingRef}
         helper={extraHelper}
+        listen={<ListenButton key={screen} id={`question-${screen}`} ids={speech} />}
       />
       <Illustration screen={screen} answers={answers} onAnswer={(value) => onAnswer(screen, value, false)} />
       {followUps.map((id) => (

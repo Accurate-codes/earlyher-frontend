@@ -15,10 +15,9 @@ import {
 } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
-import { ui } from "@/content/en/ui";
 import { audioController } from "@/lib/audio/audio-controller";
 import { appConfig } from "@/lib/config";
-import { useSession } from "@/lib/hooks";
+import { useSession, useUi } from "@/lib/hooks";
 import { sessionStore } from "@/lib/session/session-store";
 import { clearProgress, deviceStorage } from "@/lib/triage/persistence";
 
@@ -53,6 +52,7 @@ function StopAudioOnNavigation() {
 function InactivityGuard({ onTimeout }: { onTimeout: () => void }) {
   const pathname = usePathname();
   const session = useSession();
+  const { ui } = useUi();
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
   const lastActivity = useRef(0);
   const warning = useRef(false);
@@ -73,7 +73,7 @@ function InactivityGuard({ onTimeout }: { onTimeout: () => void }) {
 
     const tick = window.setInterval(() => {
       // Audio that is still playing means the person is listening, not absent.
-      if (audioController.getState().playingId && !warning.current) lastActivity.current = Date.now();
+      if (audioController.getState().status === "playing" && !warning.current) lastActivity.current = Date.now();
 
       const idle = Date.now() - lastActivity.current;
       if (idle < appConfig.inactivityTimeoutMs) return;
@@ -122,11 +122,12 @@ function InactivityGuard({ onTimeout }: { onTimeout: () => void }) {
 export function SessionProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { epoch } = useSession();
+  const { ui } = useUi();
   const [confirming, setConfirming] = useState(false);
 
   const endSession = useCallback(() => {
     setConfirming(false);
-    audioController.stop();
+    audioController.reset();
     // Finish and the inactivity timeout also delete any progress saved on this device.
     clearProgress(deviceStorage());
     sessionStore.reset();

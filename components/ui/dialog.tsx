@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, type ReactNode } from "react";
-import { ui } from "@/content/en/ui";
+import { useUi } from "@/lib/hooks";
 import { Close } from "./icons";
 
 interface DialogProps {
@@ -20,6 +20,7 @@ interface DialogProps {
  * short screens and when a phone's on-screen keyboard is open.
  */
 export function Dialog({ open, onClose, title, children, dismissible = true, size = "md" }: DialogProps) {
+  const { ui } = useUi();
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
 

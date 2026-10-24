@@ -1,5 +1,6 @@
 "use client";
 
+import { ListenButton } from "@/components/audio/listen-button";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { CareOptions } from "@/components/clinical/care-options";
@@ -137,6 +138,18 @@ export function ResultsView() {
         <p lang={lang} className="text-lg leading-relaxed">
           {outcome.body}
         </p>
+        <ListenButton
+          id={`result-${evaluation.outcome}`}
+          className="items-start"
+          ids={[
+            `triage.results.outcomes.${evaluation.outcome}.headline`,
+            `triage.results.outcomes.${evaluation.outcome}.timeframe`,
+            `triage.results.outcomes.${evaluation.outcome}.body`,
+            "triage.results.reasonsHeading",
+            ...reasons.map((key) => `triage.results.reasons.${key}`),
+            ...evaluation.advice.map((key) => `triage.results.advice.${key}`),
+          ]}
+        />
         {evaluation.outcome === "red" && (
           <div className="w-full rounded-2xl bg-white/70 px-4 py-3 text-base font-semibold">
             <EmergencyLine />

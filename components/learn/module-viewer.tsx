@@ -7,24 +7,32 @@ import { useSessionControls } from "@/components/session/session-provider";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, Check } from "@/components/ui/icons";
 import { ReviewBadge } from "@/components/ui/notice";
-import { educationModules } from "@/content/en/education";
-import { ui } from "@/content/en/ui";
+import { useContent } from "@/lib/hooks";
 import type { EducationCard, EducationModule } from "@/lib/types/clinical";
 import { ModuleIcon } from "./module-icon";
 
-function cardSpeech(card: EducationCard): string {
-  return [card.heading, card.body, card.points?.join(". "), card.callout].filter(Boolean).join(". ");
+/** Content ids read by Listen for one card. */
+function cardSpeech(slug: string, card: EducationCard): string[] {
+  const base = `learn.${slug}.${card.id}`;
+  return [
+    `${base}.heading`,
+    ...(card.body ? [`${base}.body`] : []),
+    ...(card.points ?? []).map((_, index) => `${base}.points.${index}`),
+    ...(card.callout ? [`${base}.callout`] : []),
+  ];
 }
 
 function Completion({ module, onReview }: { module: EducationModule; onReview: () => void }) {
   const { requestFinish } = useSessionControls();
+  const { ui, education } = useContent();
+  const educationModules = education.modules;
   const position = educationModules.findIndex((item) => item.slug === module.slug);
   const next = educationModules[position + 1];
 
   return (
     <PageShell>
       <PageHeading title={ui.learn.complete.title} lead={ui.learn.complete.text} eyebrow={module.title}>
-        <ListenButton id={`learn-done-${module.slug}`} text={`${ui.learn.complete.title}. ${ui.learn.complete.text}`} />
+        <ListenButton id={`learn-done-${module.slug}`} ids={["ui.learn.complete.title", "ui.learn.complete.text"]} />
       </PageHeading>
 
       <div className="grid gap-3 sm:grid-cols-2">
@@ -59,8 +67,15 @@ function Completion({ module, onReview }: { module: EducationModule; onReview: (
   );
 }
 
-/** One short card at a time, with Listen, Back and Next. */
+/** The module in the selected language. */
 export function ModuleViewer({ module }: { module: EducationModule }) {
+  const { education } = useContent();
+  return <ModuleCards module={education.modules.find((item) => item.slug === module.slug) ?? module} />;
+}
+
+/** One short card at a time, with Listen, Back and Next. */
+function ModuleCards({ module }: { module: EducationModule }) {
+  const { ui } = useContent();
   const [index, setIndex] = useState(0);
   const total = module.cards.length;
 
@@ -106,7 +121,7 @@ export function ModuleViewer({ module }: { module: EducationModule }) {
             {card.callout}
           </p>
         )}
-        <ListenButton id={`learn-${module.slug}-${card.id}`} text={cardSpeech(card)} audioKey={card.audioKey} />
+        <ListenButton id={`learn-${module.slug}-${card.id}`} ids={cardSpeech(module.slug, card)} />
 
         {card.askAboutChanges && (
           <div className="grid w-full max-w-md grid-cols-2 gap-3">

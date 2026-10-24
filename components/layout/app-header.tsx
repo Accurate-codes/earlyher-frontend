@@ -13,12 +13,13 @@ import { sessionStore } from "@/lib/session/session-store";
 
 /** English / Yorùbá switch. Each language is named in its own language. */
 function LanguageSelector() {
-  const { ui, locale, fallback } = useUi();
+  const { ui, locale } = useUi();
 
-  // Only mark the page as Yoruba once its text actually is; English text keeps lang="en".
+  // The page language follows the selection, so screen readers and fonts treat Yoruba as Yoruba.
+  // Any text still in English is marked lang="en" where it is shown.
   useEffect(() => {
-    document.documentElement.lang = locale === "yo" && !fallback ? "yo" : "en";
-  }, [locale, fallback]);
+    document.documentElement.lang = locale;
+  }, [locale]);
 
   return (
     <div role="group" aria-label={ui.language.label} className="flex rounded-full border border-line bg-white p-1 shadow-soft">
@@ -43,15 +44,21 @@ function LanguageSelector() {
   );
 }
 
-/** Says plainly that untranslated text is in English while Yoruba is selected. */
+/**
+ * While Yoruba is selected: says the Yoruba wording is a draft awaiting review, and that
+ * any text not yet translated is shown in English.
+ */
 function TranslationNotice() {
-  const { ui, locale, fallback } = useUi();
-  if (locale !== "yo" || !fallback) return null;
+  const { ui, locale, fallback, draft } = useUi();
+  if (locale !== "yo" || (!fallback && !draft)) return null;
   return (
     <div role="status" className="border-b border-amber-200 bg-amber-50 text-amber-950">
-      <p lang="en" className="mx-auto flex w-full max-w-6xl items-start gap-2 px-4 py-2 text-base sm:px-6">
+      <p className="mx-auto flex w-full max-w-6xl items-start gap-2 px-4 py-2 text-sm sm:px-6 sm:text-base">
         <Info className="mt-0.5 size-5 shrink-0" />
-        {ui.language.pending}
+        <span>
+          {draft && <span>{ui.language.draft} </span>}
+          {fallback && <span>{ui.language.pending}</span>}
+        </span>
       </p>
     </div>
   );

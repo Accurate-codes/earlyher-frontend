@@ -9,6 +9,7 @@ import { TriageTopBar } from "@/components/triage/triage-flow";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Notice } from "@/components/ui/notice";
 import { downloadFile } from "@/lib/download";
+import { triageText } from "@/content/en/triage";
 import { useTriageText } from "@/lib/hooks";
 import { createTextPdf } from "@/lib/triage/pdf";
 import { buildSummary, summaryPdfLines } from "@/lib/triage/summary";
@@ -39,10 +40,15 @@ export function SummaryView() {
 
   const t = text.summary;
   const summary = buildSummary(result.path, result.evaluation, text);
-  const createdOn = new Date().toLocaleDateString(lang === "yo" ? "yo-NG" : "en-GB", { day: "numeric", month: "long", year: "numeric" });
   const style = OUTCOME_STYLE[summary.outcome];
 
-  const pdf = () => createTextPdf(t.pdfTitle, summaryPdfLines(summary, text, createdOn));
+  // The PDF is always in English: its built-in font cannot show Yoruba tone marks, and the
+  // screen says so while Yoruba is selected. Same answers, same result, English wording.
+  const pdf = () => {
+    const createdOn = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+    const english = buildSummary(result.path, result.evaluation, triageText);
+    return createTextPdf(triageText.summary.pdfTitle, summaryPdfLines(english, triageText, createdOn));
+  };
 
   const download = () => {
     setProblem(null);
@@ -116,6 +122,7 @@ export function SummaryView() {
           {t.backToResult}
         </ButtonLink>
       </div>
+      {lang !== "en" && <p className="text-sm text-ink-soft">{t.pdfInEnglish}</p>}
       {shareSupported && <p className="text-sm text-ink-soft">{t.shareNote}</p>}
       {problem && (
         <Notice tone="warning" role="alert">

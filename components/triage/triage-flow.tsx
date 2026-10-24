@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { ListenButton } from "@/components/audio/listen-button";
 import { PageShell } from "@/components/layout/page-shell";
 import { Button, ButtonLink, buttonClass } from "@/components/ui/button";
 import { ArrowLeft, HomeIcon, Info, Lock } from "@/components/ui/icons";
@@ -136,6 +137,15 @@ function WelcomeScreen({ entry }: { entry: Entry }) {
           {entry === "concern" ? t.concernTitle : t.noConcernTitle}
         </h1>
         <p className="max-w-[46ch] text-pretty text-lg leading-relaxed text-ink-soft">{t.body}</p>
+        <ListenButton
+          id={`welcome-${entry}`}
+          ids={[
+            entry === "concern" ? "triage.welcome.concernTitle" : "triage.welcome.noConcernTitle",
+            "triage.welcome.body",
+            "triage.welcome.consent",
+            "triage.welcome.noIdentity",
+          ]}
+        />
         <div className="flex max-w-[52ch] flex-col gap-2 rounded-2xl bg-brand-50 px-4 py-3 text-left text-base leading-relaxed">
           <p className="flex items-start gap-2">
             <Lock className="mt-1 size-4 shrink-0 text-brand-700" />
@@ -170,6 +180,7 @@ function DeferredScreen({ state }: { state: TriageState }) {
           {t.deferredTitle}
         </h1>
         <p className="max-w-[46ch] text-pretty text-lg leading-relaxed text-ink-soft">{t.deferredText}</p>
+        <ListenButton id="self-check-later" ids={["triage.selfCheck.deferredTitle", "triage.selfCheck.deferredText"]} />
       </section>
       <div className="flex flex-col gap-3 rounded-3xl border border-line bg-white p-5 shadow-soft">
         <ReminderButton kind="tomorrow" label={t.reminderTomorrow} />
@@ -213,7 +224,8 @@ function ActiveQuestion({ state, screen, focusOnMount }: { state: TriageState; s
   const headingRef = useRef<HTMLHeadingElement>(null);
   const timer = useRef<number | null>(null);
   const moving = useRef(false);
-  const [error, setError] = useState<string | null>(null);
+  // The kind of message, not its text, so it follows a language switch.
+  const [error, setError] = useState<"required" | "requiredMulti" | "requiredFollowUp" | null>(null);
   const path = buildPath(state);
   const stages = journeyStages(path);
 
@@ -236,9 +248,7 @@ function ActiveQuestion({ state, screen, focusOnMount }: { state: TriageState; s
     if (moving.current) return;
     if (!updateTriage(sessionStore, (current) => advance(current, screen))) {
       const questions = screenQuestions(screen, sessionStore.getState().triage?.answers ?? {});
-      setError(
-        questions.length > 1 ? text.nav.requiredFollowUp : questionShape(screen).kind === "multi" ? text.nav.requiredMulti : text.nav.required,
-      );
+      setError(questions.length > 1 ? "requiredFollowUp" : questionShape(screen).kind === "multi" ? "requiredMulti" : "required");
       return;
     }
     moving.current = true;
@@ -274,7 +284,7 @@ function ActiveQuestion({ state, screen, focusOnMount }: { state: TriageState; s
         <QuestionScreen
           screen={screen}
           answers={state.answers}
-          error={error}
+          error={error && text.nav[error]}
           headingRef={headingRef}
           onAnswer={onAnswer}
           onContinue={go}

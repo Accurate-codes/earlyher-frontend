@@ -5,6 +5,14 @@ import { Lock } from "@/components/ui/icons";
 import { useUi } from "@/lib/hooks";
 import { JourneyChoices } from "./journey-choices";
 
+const HOME_SPEECH = [
+  "ui.home.title",
+  "ui.home.text",
+  "ui.home.journeys.concern.title",
+  "ui.home.journeys.noConcern.title",
+  "ui.home.journeys.healthcare.title",
+];
+
 /** The start screen: a short privacy note, one question and the three ways in. */
 export function HomeScreen() {
   const { ui } = useUi();
@@ -20,7 +28,7 @@ export function HomeScreen() {
           {home.title}
         </h1>
         <p className="max-w-[44ch] text-pretty text-lg leading-relaxed text-ink-soft">{home.text}</p>
-        <ListenButton id="welcome" text={home.listenText} audioKey="welcome" />
+        <ListenButton id="welcome" ids={HOME_SPEECH} />
       </div>
 
       <JourneyChoices />

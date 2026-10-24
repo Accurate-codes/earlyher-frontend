@@ -31,7 +31,6 @@ export interface EducationCard {
   points?: string[];
   /** Highlighted reassurance or guidance sentence. */
   callout?: string;
-  audioKey?: string;
   /** Asks "Have you noticed any of these changes?" on this card. */
   askAboutChanges?: boolean;
 }

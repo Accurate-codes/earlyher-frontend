@@ -49,6 +49,31 @@ export const StopSquare = (p: IconProps) => (
   </Svg>
 );
 
+export const SpeakerOff = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4z" />
+    <path d="M16 9.5l5 5M21 9.5l-5 5" />
+  </Svg>
+);
+
+export const Pause = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M9 6.5v11M15 6.5v11" />
+  </Svg>
+);
+
+export const Play = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M8 5.5v13l10.5-6.5L8 5.5z" />
+  </Svg>
+);
+
+export const Spinner = (p: IconProps) => (
+  <Svg {...p} className={`animate-spin motion-reduce:animate-none ${p.className ?? ""}`}>
+    <path d="M12 3a9 9 0 1 0 9 9" />
+  </Svg>
+);
+
 export const Heart = (p: IconProps) => (
   <Svg {...p}>
     <path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.600-7 10-7 10z" />

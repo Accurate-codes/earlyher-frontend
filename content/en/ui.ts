@@ -36,15 +36,26 @@ export const ui = {
   language: {
     label: "Language",
     names: { en: "English", yo: "Yorùbá" },
-    /** Shown when Yoruba is chosen but reviewed translations are missing. */
-    pending:
-      "Yorùbá: reviewed translations are not ready yet. Text that has not been translated is shown in English.",
+    /** Shown when Yoruba is chosen and some text has no translation yet. */
+    pending: "Some text has not been translated yet and is shown in English.",
+    /** Shown while the Yoruba wording awaits review. */
+    draft: "Draft translation: not yet checked by a fluent reviewer and a health professional.",
     missingCount: (missing: number, total: number) => `${missing} of ${total} interface texts are not yet translated.`,
   },
 
   audio: {
+    loading: "Loading audio…",
+    pause: "Pause",
+    resume: "Resume",
+    retry: "Try again",
     deviceVoice: "Playing with this device's voice.",
+    generated: "This voice is computer-generated (AI).",
     unavailable: "Audio is not available for this screen yet.",
+    errors: {
+      network: "The audio couldn't load. Check the internet connection and try again.",
+      busy: "Audio is busy right now. Please try again in a minute.",
+      failed: "The audio couldn't be played. Please try again.",
+    },
   },
 
   home: {
@@ -52,9 +63,6 @@ export const ui = {
     title: "Where would you like to start?",
     text: "Choose the option that fits you best. You can come back and choose another at any time.",
     journeysLabel: "Choose where to start",
-    listenText:
-      "Where would you like to start? Choose the option that fits you best. You can come back and choose another at any time. " +
-      "I have a breast concern. I don't have a concern. Find healthcare.",
     journeys: {
       concern: { title: "I have a breast concern", text: "Answer some questions about what you have noticed." },
       noConcern: { title: "I don't have a concern", text: "Information for when you have not noticed anything." },

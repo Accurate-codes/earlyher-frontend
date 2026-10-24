@@ -41,3 +41,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# generated speech cache and recording scripts (npm run audio:status)
+/.speech-cache
+/audio-scripts

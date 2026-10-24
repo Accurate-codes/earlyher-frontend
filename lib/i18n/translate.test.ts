@@ -18,12 +18,11 @@ describe("interface translations", () => {
     expect(countLeaves(base)).toBe(4);
   });
 
-  it("reports the Yoruba coverage honestly", () => {
-    const missing = listMissingKeys(ui, uiYo);
-    const total = countLeaves(ui);
-    // No reviewed Yoruba interface text has been supplied yet; this documents the gap.
-    console.info(`Yoruba interface coverage: ${total - missing.length} of ${total} texts translated.`);
-    expect(missing.length).toBeGreaterThan(0);
+  it("has a Yoruba draft for every interface text, not yet approved", () => {
+    // The staff-only panel stays in English.
+    const missing = listMissingKeys(ui, uiYo).filter((key) => !key.startsWith("dev"));
+    expect(missing).toEqual([]);
+    expect(countLeaves(ui)).toBeGreaterThan(100);
     expect(uiYoReview.status).not.toBe("approved");
   });
 });

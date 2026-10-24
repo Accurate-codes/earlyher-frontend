@@ -1,10 +1,13 @@
+"use client";
+
 import type { ReactNode } from "react";
-import { ui } from "@/content/en/ui";
+import { useUi } from "@/lib/hooks";
 import type { ClinicalReview } from "@/lib/types/clinical";
 import { Info } from "./icons";
 
 /** Marks wording that has not been approved by the clinical team. Hidden once content is approved. */
 export function ReviewBadge({ review }: { review: ClinicalReview }) {
+  const { ui } = useUi();
   if (review.status === "approved") return null;
   return (
     <span
@@ -18,6 +21,7 @@ export function ReviewBadge({ review }: { review: ClinicalReview }) {
 }
 
 export function DemoBadge() {
+  const { ui } = useUi();
   return (
     <span className="inline-flex items-center rounded-full border border-sky-300 bg-sky-50 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-sky-900">
       {ui.common.demo}

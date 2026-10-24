@@ -665,6 +665,8 @@ export const triageText = {
     backToResult: "Back to my result",
     pdfTitle: "EarlyHer summary",
     pdfDisclaimer: "This is guidance, not a diagnosis. These answers do not say what is causing the change.",
+    /** Shown only when another language is selected. */
+    pdfInEnglish: "The PDF is in English, so any doctor can read it. It cannot show Yoruba tone marks yet.",
     fileName: "health-summary.pdf",
   },
 
@@ -686,6 +688,7 @@ export const triageText = {
       "Your answers are kept in this page's memory. They are cleared when you press Finish, when the screen is left unused for a few minutes, or when you close or reload the page.",
       "If you choose \"Save my progress on this device\", your answers are stored in this browser for up to 7 days so you can come back. Anyone who uses this device could see them, so don't save on a shared device. You can delete them at any time.",
       "Your answers are shared only if you choose to, for example by downloading or sharing your summary.",
+      "If Listen uses an online voice (for example for Yoruba), the app asks the speech service for the fixed wording on the screen, such as a question or a result explanation. Your answers and summary are never sent, and EarlyHer does not record these requests.",
       "If you choose \"Use my location\" on the healthcare finder, your location is used on that screen only. It is not saved or sent anywhere.",
     ],
     pending: "EarlyHer's full privacy policy will be linked here once it is published.",
