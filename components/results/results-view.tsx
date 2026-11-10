@@ -3,7 +3,7 @@
 import { ListenButton } from "@/components/audio/listen-button";
 import { NO_RESULT_SPEECH, resultSpeech } from "@/lib/audio/page-speech";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { CareOptions } from "@/components/clinical/care-options";
 import { SafetyMessage } from "@/components/clinical/safety-message";
 import { PageShell } from "@/components/layout/page-shell";
@@ -11,9 +11,7 @@ import { EmergencyLine, GuidanceFooter, ReminderButton, SelfCheckGuideButton, Te
 import { entryRoute, TriageTopBar } from "@/components/triage/triage-flow";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Check } from "@/components/ui/icons";
-import { appConfig } from "@/lib/config";
 import { useSession, useTriageText, useUi } from "@/lib/hooks";
-import { explanationService } from "@/lib/services";
 import { commitTriage } from "@/lib/session/actions";
 import { sessionStore } from "@/lib/session/session-store";
 import { buildPath, continueAfterRed, goBack, resolveCursor, type Path, type TriageState } from "@/lib/triage/flow";
@@ -64,113 +62,6 @@ export function NoResult() {
   );
 }
 
-type ExplanationState = {
-  key: string;
-  status: "ready" | "error";
-  explanation: string;
-  errorKind?: string;
-};
-
-function AiExplanationCard({
-  outcome,
-  entry,
-  lang,
-}: {
-  outcome: Outcome;
-  entry: string;
-  lang: string;
-}) {
-  const requestKey = `${outcome}:${entry}:${lang}`;
-  const [resultState, setResultState] = useState<ExplanationState | null>(null);
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    explanationService
-      .explain(
-        {
-          recommendationId: outcome,
-          pathwayId: entry,
-          pathwayVersion: "1.0",
-          questionBankVersion: "1.0",
-          locale: lang,
-        },
-        controller.signal
-      )
-      .then((res) => {
-        if (controller.signal.aborted) return;
-        if (res.ok) {
-          setResultState({
-            key: requestKey,
-            status: "ready",
-            explanation: res.data.explanation,
-          });
-        } else {
-          setResultState({
-            key: requestKey,
-            status: "error",
-            explanation: "",
-            errorKind: res.error,
-          });
-        }
-      })
-      .catch(() => {
-        if (!controller.signal.aborted) {
-          setResultState({
-            key: requestKey,
-            status: "error",
-            explanation: "",
-            errorKind: "network-error",
-          });
-        }
-      });
-
-    return () => controller.abort();
-  }, [outcome, entry, lang, requestKey]);
-
-  const isLoading = !resultState || resultState.key !== requestKey;
-  const isError = !isLoading && resultState.status === "error";
-
-  // In production, hide cleanly on error per PRD Section 31.
-  // In local dev, show a helpful diagnostic message so you know why it failed!
-  if (isError && process.env.NODE_ENV === "production") {
-    return null;
-  }
-
-  return (
-    <section
-      aria-labelledby="ai-explanation-heading"
-      className="flex flex-col gap-2 rounded-3xl border border-line bg-white p-5 shadow-soft sm:p-6"
-    >
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 id="ai-explanation-heading" className="text-lg font-bold">
-          {lang === "yo" ? "Àlàyé síwájú sí i" : "More explanation"}
-        </h2>
-        <span className="rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">
-          {lang === "yo" ? "ÌRÀNLỌ́WỌ́ AI (N-ATLaS)" : "AI-ASSISTED (N-ATLaS)"}
-        </span>
-      </div>
-      {isLoading ? (
-        <p className="text-base italic text-ink-soft">
-          {lang === "yo"
-            ? "Ẹ jọ̀wọ́ ẹ mú sùúrù, a ń pese àlàyé rọrùn fún yín..."
-            : "Generating a simple, personalized explanation for your next step..."}
-        </p>
-      ) : isError ? (
-        <p className="text-sm text-amber-800">
-          Dev note: AI service returned <strong>{resultState.errorKind}</strong> (mode:{" "}
-          <code>{appConfig.apiMode}</code>, base URL:{" "}
-          <code>{appConfig.apiBaseUrl || "empty — restart Next.js to load .env.local"}</code>).
-        </p>
-      ) : (
-        <p lang={lang} className="text-lg leading-relaxed">
-          {resultState.explanation}
-        </p>
-      )}
-    </section>
-  );
-}
-
 function Actions({ evaluation }: { evaluation: Evaluation }) {
   const { text } = useTriageText();
   const a = text.results.actions;
@@ -199,6 +90,7 @@ function Actions({ evaluation }: { evaluation: Evaluation }) {
       const reminder = <ReminderButton key="monthly" kind="monthly" label={a.monthlyReminder} />;
       const guide = <SelfCheckGuideButton key="guide" label={a.selfCheckGuide} />;
       const learn = link("/learn", a.learn);
+      // Routine care comes first when it is due; otherwise the monthly reminder for people who rarely check.
       if (evaluation.advice.includes("routineCheck") || evaluation.advice.includes("screening")) items.push(routine, reminder, guide, learn);
       else if (evaluation.advice.includes("monthlySelfCheck")) items.push(reminder, guide, learn, routine);
       else items.push(guide, learn, reminder, routine);
@@ -208,6 +100,10 @@ function Actions({ evaluation }: { evaluation: Evaluation }) {
   return <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">{items}</div>;
 }
 
+/**
+ * Next steps after the triage: how soon to seek care, which answers informed it, what
+ * to do next and how to reach care. The level comes only from the deterministic rules.
+ */
 export function ResultsView() {
   const router = useRouter();
   const result = useTriageResult();
@@ -231,7 +127,7 @@ export function ResultsView() {
     <PageShell>
       <TriageTopBar onBack={backToAnswers} backLabel={t.backToAnswers} />
 
-      <section aria-labelledby="result-headline" className={`rise-in flex flex-col items-start gap-3 rounded-4xl border-2 p-5 shadow-soft sm:p-7 ${style.card}`}>
+      <section aria-labelledby="result-headline" className={`rise-in flex flex-col items-start gap-3 rounded-[2rem] border-2 p-5 shadow-soft sm:p-7 ${style.card}`}>
         <p className="text-base font-bold uppercase tracking-wide text-ink-soft">{t.howSoon}</p>
         <p className={`inline-flex flex-wrap items-center gap-x-2 rounded-full px-4 py-1.5 text-base font-bold ${style.chip}`}>
           <span>{outcome.label}</span>
@@ -256,8 +152,6 @@ export function ResultsView() {
           </div>
         )}
       </section>
-
-      <AiExplanationCard outcome={evaluation.outcome} entry={triage.entry} lang={lang} />
 
       <section aria-labelledby="next-heading" className="flex flex-col gap-3">
         <h2 id="next-heading" className="text-xl font-bold">

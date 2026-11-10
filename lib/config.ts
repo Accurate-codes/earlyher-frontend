@@ -21,7 +21,7 @@ export const appConfig = {
   inactivityWarningMs: seconds(process.env.NEXT_PUBLIC_INACTIVITY_WARNING_SECONDS, 30),
 
   timeouts: {
-    aiExplanationMs: 150000,
+    aiExplanationMs: 8000,
     facilitiesMs: 10000,
     smsMs: 12000,
   },
