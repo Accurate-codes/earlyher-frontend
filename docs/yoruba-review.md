@@ -80,3 +80,15 @@ These are the choices most likely to change the meaning or to read unnaturally.
 ## Audio review
 
 No generated Yoruba speech or recordings have been listened to in this project. Before relying on Listen in Yoruba, a fluent reviewer should listen to a sample of questions and every result, checking tones, pace and that medical words are understandable. Record the voice and settings used (provider, voice, speed) with the review.
+
+### Meta MMS clips and spoken forms
+
+Clips made with Meta MMS (`npm run audio:mms`) are in `public/audio/generated/yo/`, named `<content id>.<version>.mp3`; `audio-scripts/yo.csv` (from `npm run audio:status -- yo`) gives the wording for each id. MMS was trained mostly on Bible readings, so check that health wording sounds natural, not only that tones are right.
+
+The voice cannot say digits, symbols (°, %) or the letters c, q, v, x, z, and would skip them silently. Those texts (52 as of 2026-11-12: age ranges, weeks, "wákàtí 24", the 0–10 pain scale, 38°C, BRCA1/2, and English terms such as cyst, eczema, codeine, ovary) are not generated. `npm run audio:mms` prints each one with its current version. For each, the reviewer writes the spoken form in `content/yo/spoken.ts`, numbers as Yoruba words and English terms spelt as they should sound, for example:
+
+```ts
+"triage.results.outcomes.red.timeframe": { text: "Lónìí, láàárín wákàtí mẹ́rìnlélógún", forVersion: "de5cf394" },
+```
+
+Numbers in triage text change the guidance, so the clinical lead checks these too. Then run `npm run audio:mms` again.

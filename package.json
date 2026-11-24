@@ -11,7 +11,8 @@
     "test": "vitest run",
     "verify:browser": "node scripts/verify-browser.mjs",
     "audio:status": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/ts-loader.mjs scripts/audio-status.mjs",
-    "audio:warm": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/ts-loader.mjs scripts/audio-warm.mjs"
+    "audio:warm": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/ts-loader.mjs scripts/audio-warm.mjs",
+    "audio:mms": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/ts-loader.mjs scripts/audio-mms.mjs"
   },
   "dependencies": {
     "leaflet": "^1.9.4",

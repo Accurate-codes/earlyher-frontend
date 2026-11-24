@@ -1,5 +1,6 @@
 import { recordingsEn } from "@/content/en/audio-map";
 import { recordingsYo } from "@/content/yo/audio-map";
+import { generatedYo } from "@/content/yo/generated-audio-map";
 import { localeStore } from "@/lib/i18n/locale-store";
 import type { Locale } from "@/lib/types/locale";
 import { speechText } from "./speech-catalog";
@@ -10,9 +11,11 @@ import { speechText } from "./speech-catalog";
  * Each Listen control reads a list of content ids (see speech-catalog.ts) in the selected
  * language. For each piece of text, in order of preference:
  *   1. a reviewed recording made for the current wording (content/<lang>/audio-map.ts);
- *   2. generated speech from the server (/api/speech), when a provider that supports the
- *      language is configured; it is labelled as AI-generated while it plays;
- *   3. a voice on this device that actually speaks the language. Setting lang="yo-NG" does
+ *   2. speech generated ahead of time for the current wording (Yoruba: Meta MMS, see
+ *      content/yo/generated-audio-map.ts), served as a static file like a recording;
+ *   3. generated speech from the server (/api/speech), when a provider that supports the
+ *      language is configured; 2 and 3 are labelled as AI-generated while they play;
+ *   4. a voice on this device that actually speaks the language. Setting lang="yo-NG" does
  *      not create a Yoruba voice, so Yoruba is only spoken by a voice whose own language is
  *      Yoruba; an English voice is never used for Yoruba text.
  * If any piece has none of these, the control says audio is unavailable instead of playing
@@ -26,7 +29,7 @@ import { speechText } from "./speech-catalog";
  * leave the check or the session ends.
  */
 
-export type Source = "recording" | "generated" | "device";
+export type Source = "recording" | "prerendered" | "generated" | "device";
 export type AudioError = "network" | "busy" | "failed" | "unavailable";
 
 export interface AudioState {
@@ -67,6 +70,7 @@ export interface Segment {
 type Recordings = Record<Locale, Readonly<Record<string, string>>>;
 
 const RECORDINGS: Recordings = { en: recordingsEn, yo: recordingsYo };
+const PRERENDERED: Recordings = { en: {}, yo: generatedYo };
 
 const idle: AudioState = { controlId: null, status: "idle", canPause: false, generated: false, device: false, error: null };
 const initialSupport: Support = { generated: null, generatedCheck: "pending", deviceLanguages: [] };
@@ -137,7 +141,13 @@ async function checkGenerated() {
 }
 
 /** Where each piece of text can come from, in order of preference; null if an id has no text. */
-export function planSegments(locale: Locale, ids: string[], available: Support, recordings: Recordings = RECORDINGS): Segment[] | null {
+export function planSegments(
+  locale: Locale,
+  ids: string[],
+  available: Support,
+  recordings: Recordings = RECORDINGS,
+  prerendered: Recordings = PRERENDERED,
+): Segment[] | null {
   const segments: Segment[] = [];
   for (const id of ids) {
     const entry = speechText(locale, id);
@@ -145,6 +155,7 @@ export function planSegments(locale: Locale, ids: string[], available: Support, 
     const sources: Source[] = [];
     // A recording is used only if it was made for the current wording.
     if (recordings[locale][id] === entry.version) sources.push("recording");
+    if (prerendered[locale][id] === entry.version) sources.push("prerendered");
     if (available.generated?.[locale]) sources.push("generated");
     if (available.deviceLanguages.includes(locale)) sources.push("device");
     segments.push({ id, text: entry.text, version: entry.version, sources });
@@ -152,8 +163,14 @@ export function planSegments(locale: Locale, ids: string[], available: Support, 
   return segments;
 }
 
-export function availabilityOf(locale: Locale, ids: string[], available: Support, recordings: Recordings = RECORDINGS): Availability {
-  const segments = planSegments(locale, ids, available, recordings);
+export function availabilityOf(
+  locale: Locale,
+  ids: string[],
+  available: Support,
+  recordings: Recordings = RECORDINGS,
+  prerendered: Recordings = PRERENDERED,
+): Availability {
+  const segments = planSegments(locale, ids, available, recordings, prerendered);
   if (!segments || segments.length === 0) return "unavailable";
   if (segments.every((segment) => segment.sources.length > 0)) return "ready";
   return available.generatedCheck === "pending" ? "checking" : "unavailable";
@@ -258,6 +275,8 @@ async function run(controlId: string, locale: Locale, segments: Segment[], mine:
   // Start fetching generated clips that will be needed, so pieces play without gaps.
   const pending = new Map<string, Promise<string>>();
   for (const segment of segments) {
+    // Clips made ahead of time are only warmed in the browser cache.
+    if (segment.sources[0] === "prerendered") void fetch(`/audio/generated/${locale}/${segment.id}.${segment.version}.mp3`, { signal }).catch(() => undefined);
     if (segment.sources[0] === "generated") {
       const request = fetchGenerated(locale, segment, signal);
       request.catch(() => undefined);
@@ -274,10 +293,11 @@ async function run(controlId: string, locale: Locale, segments: Segment[], mine:
         setState({
           ...state,
           canPause: usesElement,
-          generated: state.generated || source === "generated",
+          generated: state.generated || source === "generated" || source === "prerendered",
           device: state.device || source === "device",
         });
         if (source === "recording") await playFile(`/audio/${locale}/${segment.id}.mp3`, mine);
+        else if (source === "prerendered") await playFile(`/audio/generated/${locale}/${segment.id}.${segment.version}.mp3`, mine);
         else if (source === "generated") await playFile(await (pending.get(segment.id) ?? fetchGenerated(locale, segment, signal)), mine);
         else await speakWithDevice(locale, segment.text, mine);
         lastError = null;

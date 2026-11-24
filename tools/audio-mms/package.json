@@ -1,0 +1,9 @@
+{
+  "name": "earlyher-audio-mms",
+  "private": true,
+  "description": "Offline tool for npm run audio:mms: generates Yoruba speech with Meta MMS. Kept separate so the app and Vercel never install it.",
+  "dependencies": {
+    "@breezystack/lamejs": "1.2.7",
+    "@huggingface/transformers": "3.8.1"
+  }
+}

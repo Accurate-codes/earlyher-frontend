@@ -45,3 +45,7 @@ next-env.d.ts
 # generated speech cache and recording scripts (npm run audio:status)
 /.speech-cache
 /audio-scripts
+
+# Meta MMS generator (npm run audio:mms): its runtime and model download, not the clips
+/tools/audio-mms/node_modules
+/tools/audio-mms/.models

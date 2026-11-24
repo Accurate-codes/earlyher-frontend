@@ -50,40 +50,51 @@ describe("choosing an audio source", () => {
   const ids = question("R1");
 
   it("says Yoruba audio is unavailable when there is no recording, provider or Yoruba voice", () => {
-    expect(availabilityOf("yo", ids, nothing, noRecordings)).toBe("unavailable");
+    expect(availabilityOf("yo", ids, nothing, noRecordings, noRecordings)).toBe("unavailable");
   });
 
   it("never uses an English device voice for Yoruba", () => {
-    expect(availabilityOf("yo", ids, { ...nothing, deviceLanguages: ["en"] }, noRecordings)).toBe("unavailable");
-    expect(availabilityOf("en", ids, { ...nothing, deviceLanguages: ["en"] }, noRecordings)).toBe("ready");
+    expect(availabilityOf("yo", ids, { ...nothing, deviceLanguages: ["en"] }, noRecordings, noRecordings)).toBe("unavailable");
+    expect(availabilityOf("en", ids, { ...nothing, deviceLanguages: ["en"] }, noRecordings, noRecordings)).toBe("ready");
   });
 
   it("uses an actual Yoruba device voice when one exists", () => {
-    expect(availabilityOf("yo", ids, { ...nothing, deviceLanguages: ["en", "yo"] }, noRecordings)).toBe("ready");
+    expect(availabilityOf("yo", ids, { ...nothing, deviceLanguages: ["en", "yo"] }, noRecordings, noRecordings)).toBe("ready");
   });
 
   it("waits for the server before deciding", () => {
-    expect(availabilityOf("yo", ids, { generated: null, generatedCheck: "pending", deviceLanguages: [] }, noRecordings)).toBe("checking");
+    expect(availabilityOf("yo", ids, { generated: null, generatedCheck: "pending", deviceLanguages: [] }, noRecordings, noRecordings)).toBe("checking");
   });
 
   it("uses generated speech when the server has a Yoruba provider", () => {
     const support: Support = { ...nothing, generated: { yo: { provider: "Spitch", voice: "sade" } } };
-    expect(availabilityOf("yo", ids, support, noRecordings)).toBe("ready");
-    expect(planSegments("yo", ids, support, noRecordings)?.[0].sources).toEqual(["generated"]);
+    expect(availabilityOf("yo", ids, support, noRecordings, noRecordings)).toBe("ready");
+    expect(planSegments("yo", ids, support, noRecordings, noRecordings)?.[0].sources).toEqual(["generated"]);
   });
 
   it("prefers a recording made for the current wording, and ignores an outdated one", () => {
     const current = speechText("yo", "triage.questions.R1.prompt")!.version;
     const recorded = { en: {}, yo: Object.fromEntries(ids.map((id) => [id, speechText("yo", id)!.version])) };
-    expect(availabilityOf("yo", ids, nothing, recorded)).toBe("ready");
+    expect(availabilityOf("yo", ids, nothing, recorded, noRecordings)).toBe("ready");
     const stale = { en: {}, yo: { ...recorded.yo, "triage.questions.R1.prompt": current === "00000000" ? "11111111" : "00000000" } };
-    expect(availabilityOf("yo", ids, nothing, stale)).toBe("unavailable");
+    expect(availabilityOf("yo", ids, nothing, stale, noRecordings)).toBe("unavailable");
     const withProvider: Support = { ...nothing, generated: { yo: { provider: "Spitch", voice: "sade" } } };
-    expect(planSegments("yo", ids, withProvider, recorded)?.[0].sources).toEqual(["recording", "generated"]);
+    expect(planSegments("yo", ids, withProvider, recorded, noRecordings)?.[0].sources).toEqual(["recording", "generated"]);
+  });
+
+  it("uses Yoruba speech generated ahead of time for the current wording, and ignores an outdated clip", () => {
+    const made = { en: {}, yo: Object.fromEntries(ids.map((id) => [id, speechText("yo", id)!.version])) };
+    expect(availabilityOf("yo", ids, nothing, noRecordings, made)).toBe("ready");
+    expect(availabilityOf("en", ids, nothing, noRecordings, made)).toBe("unavailable");
+    const stale = { en: {}, yo: { ...made.yo, "triage.questions.R1.prompt": "00000000" } };
+    expect(availabilityOf("yo", ids, nothing, noRecordings, stale)).toBe("unavailable");
+    const recorded = { en: {}, yo: { "triage.questions.R1.prompt": speechText("yo", "triage.questions.R1.prompt")!.version } };
+    const withProvider: Support = { ...nothing, generated: { yo: { provider: "Spitch", voice: "sade" } }, deviceLanguages: ["yo"] };
+    expect(planSegments("yo", ids, withProvider, recorded, made)?.[0].sources).toEqual(["recording", "prerendered", "generated", "device"]);
   });
 
   it("does not play part of a screen: one unreadable id makes the control unavailable", () => {
-    expect(availabilityOf("en", [...ids, "triage.questions.ZZ.prompt"], { ...nothing, deviceLanguages: ["en"] }, noRecordings)).toBe("unavailable");
+    expect(availabilityOf("en", [...ids, "triage.questions.ZZ.prompt"], { ...nothing, deviceLanguages: ["en"] }, noRecordings, noRecordings)).toBe("unavailable");
   });
 });
 
